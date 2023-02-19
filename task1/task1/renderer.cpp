@@ -21,7 +21,12 @@ Renderer::Renderer() :
     pDevice_(NULL),
     pDeviceContext_(NULL),
     pSwapChain_(NULL),
-    pBackBufferRTV_(NULL),
+    pRenderTargetView_(NULL),
+    pVertexBuffer_(NULL),
+    pIndexBuffer_(NULL),
+    pInputLayout_(NULL),
+    pVertexShader_(NULL),
+    pPixelShader_(NULL),
     width_(defaultWidth),
     height_(defaultHeight)
 {
@@ -37,10 +42,30 @@ void Renderer::CleanAll()
     if (NULL != pDeviceContext_)
         pDeviceContext_->ClearState();
 
-    SafeRelease(pBackBufferRTV_);
-    SafeRelease(pDevice_);
+    SafeRelease(pRenderTargetView_);
     SafeRelease(pDeviceContext_);
     SafeRelease(pSwapChain_);
+
+    SafeRelease(pVertexBuffer_);
+    SafeRelease(pIndexBuffer_);
+    SafeRelease(pInputLayout_);
+    SafeRelease(pVertexShader_);
+    SafeRelease(pPixelShader_);
+
+#ifdef _DEBUG
+    if (pDevice_ != NULL) {
+        ID3D11Debug* d3dDebug = NULL;
+        pDevice_->QueryInterface(IID_PPV_ARGS(&d3dDebug));
+
+        UINT references = pDevice_->Release();
+        pDevice_ = NULL;
+        if (references > 1) {
+            d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+        }
+        SafeRelease(d3dDebug);
+    }
+#endif
+    SafeRelease(pDevice_);
 }
 
 bool Renderer::Init(const HWND hWnd)
@@ -114,65 +139,168 @@ bool Renderer::Init(const HWND hWnd)
         return false;
 
     ID3D11Texture2D* pBackBuffer = NULL;
-    result = pSwapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
-    if (!SUCCEEDED(result))
-        return false;
-    result = pDevice_->CreateRenderTargetView(pBackBuffer, NULL, &pBackBufferRTV_);
-    if (!SUCCEEDED(result))
-        return false;
+    if (SUCCEEDED(result)) {
+        result = pSwapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
+    }
+    if (SUCCEEDED(result)) {
+        result = pDevice_->CreateRenderTargetView(pBackBuffer, NULL, &pRenderTargetView_);
+    }
+    if (SUCCEEDED(result)) {
+        result = InitScene();
+    }
+    SafeRelease(pFactory);
+    SafeRelease(pSelectedAdapter);
     SafeRelease(pBackBuffer);
+    if (FAILED(result)) {
+        CleanAll();
+    }
 
-    return true;
+    return SUCCEEDED(result);
+}
+
+HRESULT Renderer::InitScene() {
+    HRESULT result;
+
+    static const Vertex Vertices[] = {
+        {-0.5f, -0.5f, 0.0f, RGB(0, 255, 0)},
+        { 0.5f, -0.5f, 0.0f, RGB(255, 0, 0)},
+        { 0.0f,  0.5f, 0.0f, RGB(0, 0, 255)}
+    };
+    static const USHORT Indices[] = {
+        0, 2, 1
+    };
+    static const D3D11_INPUT_ELEMENT_DESC InputDesc[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0,  DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
+    };
+
+    D3D11_BUFFER_DESC desc = {};
+    desc.ByteWidth = sizeof(Vertices);
+    desc.Usage = D3D11_USAGE_IMMUTABLE;
+    desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    desc.CPUAccessFlags = 0;
+    desc.MiscFlags = 0;
+    desc.StructureByteStride = 0;
+
+    D3D11_SUBRESOURCE_DATA data;
+    data.pSysMem = &Vertices;
+    data.SysMemPitch = sizeof(Vertices);
+    data.SysMemSlicePitch = 0;
+
+    result = pDevice_->CreateBuffer(&desc, &data, &pVertexBuffer_);
+
+    if (SUCCEEDED(result)) {
+        D3D11_BUFFER_DESC desc = {};
+        desc.ByteWidth = sizeof(Indices);
+        desc.Usage = D3D11_USAGE_IMMUTABLE;
+        desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        desc.CPUAccessFlags = 0;
+        desc.MiscFlags = 0;
+        desc.StructureByteStride = 0;
+
+        D3D11_SUBRESOURCE_DATA data;
+        data.pSysMem = &Indices;
+        data.SysMemPitch = sizeof(Indices);
+        data.SysMemSlicePitch = 0;
+
+        result = pDevice_->CreateBuffer(&desc, &data, &pIndexBuffer_);
+    }
+
+    ID3D10Blob* vertexShaderBuffer = nullptr;
+    ID3D10Blob* pixelShaderBuffer = nullptr;
+    int flags = 0;
+#ifdef _DEBUG
+    flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+    if (SUCCEEDED(result)) {
+        result = D3DCompileFromFile(L"VertexShader.hlsl", NULL, NULL, "main", "vs_5_0", flags, 0, &vertexShaderBuffer, NULL);
+        if (SUCCEEDED(result)) {
+            result = pDevice_->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &pVertexShader_);
+        }
+    }
+    if (SUCCEEDED(result)) {
+        result = D3DCompileFromFile(L"PixelShader.hlsl", NULL, NULL, "main", "ps_5_0", flags, 0, &pixelShaderBuffer, NULL);
+        if (SUCCEEDED(result)) {
+            result = pDevice_->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &pPixelShader_);
+        }
+    }
+    if (SUCCEEDED(result)) {
+        int numElements = sizeof(InputDesc) / sizeof(InputDesc[0]);
+        result = pDevice_->CreateInputLayout(InputDesc, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &pInputLayout_);
+    }
+
+    SafeRelease(vertexShaderBuffer);
+    SafeRelease(pixelShaderBuffer);
+
+    return result;
 }
 
 bool Renderer::Render()
 {
     pDeviceContext_->ClearState();
-    ID3D11RenderTargetView* views[] = { pBackBufferRTV_ };
+
+    ID3D11RenderTargetView* views[] = { pRenderTargetView_ };
     pDeviceContext_->OMSetRenderTargets(1, views, NULL);
 
     static const FLOAT backColor[4] = { 0.3f, 0.5f, 0.7f, 1.0f };
-    pDeviceContext_->ClearRenderTargetView(pBackBufferRTV_, backColor);
+    pDeviceContext_->ClearRenderTargetView(pRenderTargetView_, backColor);
+
+    D3D11_VIEWPORT viewport;
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width = (FLOAT)width_;
+    viewport.Height = (FLOAT)height_;
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+    pDeviceContext_->RSSetViewports(1, &viewport);
+
+    D3D11_RECT rect;
+    rect.left = 0;
+    rect.top = 0;
+    rect.right = width_;
+    rect.bottom = height_;
+    pDeviceContext_->RSSetScissorRects(1, &rect);
+
+    pDeviceContext_->IASetIndexBuffer(pIndexBuffer_, DXGI_FORMAT_R16_UINT, 0);
+    ID3D11Buffer* vertexBuffers[] = { pVertexBuffer_ };
+    UINT strides[] = { 16 };
+    UINT offsets[] = { 0 };
+    pDeviceContext_->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
+    pDeviceContext_->IASetInputLayout(pInputLayout_);
+    pDeviceContext_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    pDeviceContext_->VSSetShader(pVertexShader_, nullptr, 0);
+    pDeviceContext_->PSSetShader(pPixelShader_, nullptr, 0);
+    pDeviceContext_->DrawIndexed(3, 0, 0);
 
     HRESULT result = pSwapChain_->Present(0, 0);
-    if (!SUCCEEDED(result))
-        return false;
 
-    return true;
+    return SUCCEEDED(result);
 }
 
 bool Renderer::Resize(const unsigned width, const unsigned height)
 {
-    if (NULL == pSwapChain_)
+    if (pSwapChain_ == NULL)
         return false;
 
-    pDeviceContext_->OMSetRenderTargets(0, 0, 0);
-    pBackBufferRTV_->Release();
+    SafeRelease(pRenderTargetView_);
 
-    auto result = pSwapChain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+    width_ = max(width, 8);
+    height_ = max(height, 8);
+
+    auto result = pSwapChain_->ResizeBuffers(2, width_, height_, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
     if (!SUCCEEDED(result))
         return false;
 
     ID3D11Texture2D* pBuffer;
-    result = pSwapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBuffer));
+    result = pSwapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBuffer);
     if (!SUCCEEDED(result))
         return false;
 
-    result = pDevice_->CreateRenderTargetView(pBuffer, NULL, &pBackBufferRTV_);
-    pBuffer->Release();
+    result = pDevice_->CreateRenderTargetView(pBuffer, NULL, &pRenderTargetView_);
+    SafeRelease(pBuffer);
     if (!SUCCEEDED(result))
         return false;
-
-    pDeviceContext_->OMSetRenderTargets(1, &pBackBufferRTV_, NULL);
-
-    D3D11_VIEWPORT vp;
-    vp.Width = (FLOAT)width;
-    vp.Height = (FLOAT)height;
-    vp.MinDepth = 0.0f;
-    vp.MaxDepth = 1.0f;
-    vp.TopLeftX = 0;
-    vp.TopLeftY = 0;
-    pDeviceContext_->RSSetViewports(1, &vp);
 
     return true;
 }
