@@ -1,12 +1,13 @@
 ﻿//{{NO_DEPENDENCIES}}
 // Включаемый файл, созданный в Microsoft Visual C++.
-// Используется task1.rc
+// Используется GraficApp.rc
 //
 #define IDC_MYICON                      2
 #define IDD_TASK1_DIALOG                102
 #define IDS_APP_TITLE                   103
 #define IDM_ABOUT                       104
 #define IDI_TASK1                       107
+#define IDI_GRAFICAPP                   107
 #define IDI_SMALL                       108
 #define IDC_TASK1                       109
 #define IDC_APP                         109

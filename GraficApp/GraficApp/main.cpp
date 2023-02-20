@@ -26,6 +26,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE     hInstance,
     LoadStringW(hInstance, IDC_APP, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
+    std::wstring dir;
+    dir.resize(MAX_PATH + 1);
+    GetCurrentDirectory(MAX_PATH + 1, &dir[0]);
+    size_t configPos = dir.find(L"x64");
+    if (configPos != std::wstring::npos) {
+        dir.resize(configPos);
+        dir += szTitle;
+        SetCurrentDirectory(dir.c_str());
+    }
+
     // Выполнить инициализацию приложения:
     if (!InitInstance(hInstance, nCmdShow)) {
         return FALSE;
