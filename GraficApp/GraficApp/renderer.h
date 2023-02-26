@@ -1,13 +1,21 @@
 #pragma once
 
-#include <d3d11.h>
-#include <dxgi.h>
-#include <d3dcompiler.h>
 #include <windows.h>
+#include "framework.h"
+#include "camera.h"
+#include "input.h"
 
 struct Vertex {
     float x, y, z;
     COLORREF color;
+};
+
+struct WorldMatrixBuffer {
+    XMMATRIX worldMatrix;
+};
+
+struct ViewMatrixBuffer {
+    XMMATRIX viewProjectionMatrix;
 };
 
 class Renderer
@@ -20,7 +28,7 @@ public:
     ~Renderer();
     void CleanAll();
 
-    bool Init(const HWND hWnd);
+    bool Init(HINSTANCE hInstance, const HWND hWnd);
     bool Render();
     bool Resize(const unsigned width, const unsigned height);
 
@@ -31,6 +39,8 @@ private:
     Renderer();
 
     HRESULT InitScene();
+    void InputHandler();
+    bool UpdateScene();
 
     ID3D11Device* pDevice_;
     ID3D11DeviceContext* pDeviceContext_;
@@ -42,6 +52,13 @@ private:
     ID3D11InputLayout* pInputLayout_;
     ID3D11VertexShader* pVertexShader_;
     ID3D11PixelShader* pPixelShader_;
+
+    ID3D11Buffer* pWorldMatrixBuffer_;
+    ID3D11Buffer* pViewMatrixBuffer_;
+    ID3D11RasterizerState* pRasterizerState_;
+
+    Camera* pCamera_;
+    Input* pInput_;
 
     UINT width_;
     UINT height_;
