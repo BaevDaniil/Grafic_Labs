@@ -13,3 +13,13 @@
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
+
+#define DIRECTINPUT_VERSION 0x0800
+
+#include <d3d11.h>
+#include <dxgi.h>
+#include <d3dcompiler.h>
+#include <dinput.h>
+#include <directxmath.h>
+
+using namespace DirectX;

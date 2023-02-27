@@ -94,8 +94,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
         return FALSE;
     }
 
+    ShowWindow(hWnd, nCmdShow);
+    SetForegroundWindow(hWnd);
+    SetFocus(hWnd);
+
     Renderer& renderer = Renderer::GetInstance();
-    if (!renderer.Init(hWnd)) {
+    if (!renderer.Init(hInstance, hWnd)) {
         return FALSE;
     }
 
@@ -111,7 +115,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
         MoveWindow(hWnd, 0, 0, rc.right - rc.left, rc.bottom - rc.top, TRUE);
     }
 
-    ShowWindow(hWnd, nCmdShow);
     UpdateWindow(hWnd);
 
     return TRUE;
