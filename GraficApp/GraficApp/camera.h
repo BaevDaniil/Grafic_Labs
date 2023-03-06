@@ -8,7 +8,7 @@ public:
 
     void Rotate(float dphi, float dtheta);
     void Zoom(float dr);
-    void Move(float di, float dj); // di - right/left relative to the camera, dj - up/down relative to the camera
+    void Move(float di, float dj, float dz); // di - right/left relative to the camera, di - foward/becward relative to the camers, dz - up/down relative to the camera
 
     XMMATRIX& GetViewMatrix() {
         return viewMatrix_;

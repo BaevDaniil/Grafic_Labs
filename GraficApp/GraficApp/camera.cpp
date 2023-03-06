@@ -38,11 +38,12 @@ void Camera::Zoom(float dr) {
     UpdateViewMatrix();
 }
 
-void Camera::Move(float di, float dj) {
+void Camera::Move(float di, float dj, float dz) {
     float upTheta = theta_ + XM_PIDIV2;
-    XMFLOAT3 up = XMFLOAT3(cosf(upTheta) * cosf(phi_) * dj, sinf(upTheta) * dj, cosf(upTheta) * sinf(phi_) * dj);
-    focus_ = XMFLOAT3(focus_.x + up.x, focus_.y + up.y, focus_.z + up.z);
-    position_ = XMFLOAT3(position_.x + up.x, position_.y + up.y, position_.z + up.z);
+    XMFLOAT3 up = XMFLOAT3(cosf(upTheta) * cosf(phi_) * dz, sinf(upTheta) * dz, cosf(upTheta) * sinf(phi_) * dz);
+    XMFLOAT3 forward = XMFLOAT3(cosf(theta_) * cosf(phi_) * dj, sinf(theta_) * dj, cosf(theta_) * sinf(phi_) * dj);
+    focus_ = XMFLOAT3(focus_.x + forward.x + up.x, focus_.y + forward.y + up.y, focus_.z + forward.z + up.z);
+    position_ = XMFLOAT3(position_.x + forward.x + up.x, position_.y + forward.y + up.y, position_.z + forward.z + up.z);
 
     float rightPhi = phi_ + XM_PIDIV2;
     XMFLOAT3 right = XMFLOAT3(cosf(rightPhi) * di, 0, sinf(rightPhi) * di);

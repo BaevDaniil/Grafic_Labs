@@ -80,9 +80,9 @@ XMFLOAT3 Input::ReadMouse() {
     return XMFLOAT3(0.0f, 0.0f, 0.0f);
 }
 
-XMFLOAT4 Input::ReadKeyboard() {
+unsigned char* Input::ReadKeyboard() {
     HRESULT result;
-    XMFLOAT4 keys = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+    unsigned char* key = 0;
 
     result = keyboard_->GetDeviceState(sizeof(keyboardState_), (LPVOID)&keyboardState_);
     if (FAILED(result)) {
@@ -90,17 +90,18 @@ XMFLOAT4 Input::ReadKeyboard() {
             keyboard_->Acquire();
     }
     else {
-        if (keyboardState_[DIK_UP] || keyboardState_[DIK_W])
-            keys.x = 4.0f;
+        /*if (keyboardState_[DIK_UP] || keyboardState_[DIK_W])
+            keys.x = 1.0f;
         if (keyboardState_[DIK_DOWN] || keyboardState_[DIK_S])
-            keys.y = 4.0f;
+            keys.y = 1.0f;
         if (keyboardState_[DIK_LEFT] || keyboardState_[DIK_A])
-            keys.z = 4.0f;
+            keys.z = 1.0f;
         if (keyboardState_[DIK_RIGHT] || keyboardState_[DIK_D])
-            keys.w = 4.0f;
+            keys.w = 1.0f;*/
+        key = keyboardState_;
     }
 
-    return keys;
+    return key;
 }
 
 Input::~Input() {

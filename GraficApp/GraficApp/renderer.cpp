@@ -571,17 +571,23 @@ void Renderer::InputHandler() {
     pCamera_->Rotate(mouse.x / 200.0f, mouse.y / 200.0f);
     pCamera_->Zoom(-mouse.z / 100.0f);
 
-    XMFLOAT4 keyboard = pInput_->ReadKeyboard();
-    float di = 0.0, dj = 0.0;
-    if (keyboard.x > 0.0)
+    unsigned char* keyboard = pInput_->ReadKeyboard();
+    float di = 0.0, dj = 0.0, dz = 0.0;
+
+    if (keyboard[DIK_UP] || keyboard[DIK_W])
         dj += 0.05f;
-    if (keyboard.y > 0.0)
+    if (keyboard[DIK_DOWN] || keyboard[DIK_S])
         dj -= 0.05f;
-    if (keyboard.z > 0.0)
+    if (keyboard[DIK_LEFT] || keyboard[DIK_A])
         di += 0.05f;
-    if (keyboard.w > 0.0)
+    if (keyboard[DIK_RIGHT] || keyboard[DIK_D])
         di -= 0.05f;
-    pCamera_->Move(di, dj);
+    if (keyboard[DIK_LCONTROL])
+        dz -= 0.05f;
+    if (keyboard[DIK_LSHIFT])
+        dz += 0.05f;
+
+    pCamera_->Move(di, dj, dz);
 }
 
 bool Renderer::UpdateScene() {

@@ -9,7 +9,7 @@ public:
     HRESULT Init(HINSTANCE hinstance, HWND hwnd);
     void Realese();
     XMFLOAT3 ReadMouse();
-    XMFLOAT4 ReadKeyboard();
+    unsigned char* ReadKeyboard();
 
     ~Input();
 private:
