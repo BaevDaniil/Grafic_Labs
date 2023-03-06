@@ -2,7 +2,8 @@
 
 Input::Input() :
     directInput_(NULL),
-    mouse_(NULL) {}
+    mouse_(NULL),
+    keyboard_(NULL) {}
 
 HRESULT Input::Init(HINSTANCE hinstance, HWND hwnd) {
     HRESULT result;
@@ -25,6 +26,22 @@ HRESULT Input::Init(HINSTANCE hinstance, HWND hwnd) {
         result = mouse_->Acquire();
     }
 
+    if (SUCCEEDED(result)) {
+        result = directInput_->CreateDevice(GUID_SysKeyboard, &keyboard_, NULL);
+    }
+
+    if (SUCCEEDED(result)) {
+        result = keyboard_->SetDataFormat(&c_dfDIKeyboard);
+    }
+
+    if (SUCCEEDED(result)) {
+        result = keyboard_->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE);
+    }
+
+    if (SUCCEEDED(result)) {
+        result = keyboard_->Acquire();
+    }
+
     return result;
 }
 
@@ -35,13 +52,19 @@ void Input::Realese() {
         mouse_ = NULL;
     }
 
+    if (keyboard_) {
+        keyboard_->Unacquire();
+        keyboard_->Release();
+        keyboard_ = NULL;
+    }
+
     if (directInput_) {
         directInput_->Release();
         directInput_ = NULL;
     }
 }
 
-XMFLOAT3 Input::ReadInput() {
+XMFLOAT3 Input::ReadMouse() {
     HRESULT result;
 
     result = mouse_->GetDeviceState(sizeof(DIMOUSESTATE), (LPVOID)&mouseState_);
@@ -50,11 +73,35 @@ XMFLOAT3 Input::ReadInput() {
             mouse_->Acquire();
     }
     else {
-        if (mouseState_.rgbButtons[0] || mouseState_.rgbButtons[1] || mouseState_.rgbButtons[2] & 0x80)
+        if (mouseState_.rgbButtons[0] || mouseState_.rgbButtons[1] || mouseState_.lZ != 0)
             return XMFLOAT3((float)mouseState_.lX, (float)mouseState_.lY, (float)mouseState_.lZ);
     }
 
     return XMFLOAT3(0.0f, 0.0f, 0.0f);
+}
+
+unsigned char* Input::ReadKeyboard() {
+    HRESULT result;
+    unsigned char* key = 0;
+
+    result = keyboard_->GetDeviceState(sizeof(keyboardState_), (LPVOID)&keyboardState_);
+    if (FAILED(result)) {
+        if ((result == DIERR_INPUTLOST) || (result == DIERR_NOTACQUIRED))
+            keyboard_->Acquire();
+    }
+    else {
+        /*if (keyboardState_[DIK_UP] || keyboardState_[DIK_W])
+            keys.x = 1.0f;
+        if (keyboardState_[DIK_DOWN] || keyboardState_[DIK_S])
+            keys.y = 1.0f;
+        if (keyboardState_[DIK_LEFT] || keyboardState_[DIK_A])
+            keys.z = 1.0f;
+        if (keyboardState_[DIK_RIGHT] || keyboardState_[DIK_D])
+            keys.w = 1.0f;*/
+        key = keyboardState_;
+    }
+
+    return key;
 }
 
 Input::~Input() {

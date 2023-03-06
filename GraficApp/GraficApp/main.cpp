@@ -125,7 +125,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
 //
 //  ЦЕЛЬ: Обрабатывает сообщения в главном окне.
 //
-//  WM_PAINT    - Отрисовка главного окна
 //  WM_DESTROY  - Отправить сообщение о выходе и вернуться
 //  WM_SIZE     - Изменить размер окна
 //

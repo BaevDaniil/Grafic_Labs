@@ -1,13 +1,14 @@
 #pragma once
 
 #include <windows.h>
+#include <vector>
 #include "framework.h"
 #include "camera.h"
 #include "input.h"
 
 struct Vertex {
     float x, y, z;
-    COLORREF color;
+    float u, v;
 };
 
 struct WorldMatrixBuffer {
@@ -16,6 +17,20 @@ struct WorldMatrixBuffer {
 
 struct ViewMatrixBuffer {
     XMMATRIX viewProjectionMatrix;
+};
+
+struct SkyboxVertex {
+    float x, y, z;
+};
+
+struct SkyboxWorldMatrixBuffer {
+    XMMATRIX worldMatrix;
+    XMFLOAT4 size;
+};
+
+struct SkyboxViewMatrixBuffer {
+    XMMATRIX viewProjectionMatrix;
+    XMFLOAT4 cameraPos;
 };
 
 class Renderer
@@ -47,19 +62,24 @@ private:
     IDXGISwapChain* pSwapChain_;
     ID3D11RenderTargetView* pRenderTargetView_;
 
-    ID3D11Buffer* pVertexBuffer_;
-    ID3D11Buffer* pIndexBuffer_;
-    ID3D11InputLayout* pInputLayout_;
-    ID3D11VertexShader* pVertexShader_;
-    ID3D11PixelShader* pPixelShader_;
+    ID3D11Buffer* pVertexBuffer_[2] = { NULL, NULL };
+    ID3D11Buffer* pIndexBuffer_[2] = { NULL, NULL };
+    ID3D11InputLayout* pInputLayout_[2] = { NULL, NULL };
+    ID3D11VertexShader* pVertexShader_[2] = { NULL, NULL };
+    ID3D11PixelShader* pPixelShader_[2] = { NULL, NULL };
 
-    ID3D11Buffer* pWorldMatrixBuffer_;
-    ID3D11Buffer* pViewMatrixBuffer_;
+    ID3D11Buffer* pWorldMatrixBuffer_[2] = { NULL, NULL };
+    ID3D11Buffer* pViewMatrixBuffer_[2] = { NULL, NULL };
     ID3D11RasterizerState* pRasterizerState_;
+    ID3D11SamplerState* pSampler_;
+
+    ID3D11ShaderResourceView* pTexture_[2] = { NULL, NULL };
 
     Camera* pCamera_;
     Input* pInput_;
 
     UINT width_;
     UINT height_;
+    UINT numSphereTriangles_;
+    float radius_;
 };
