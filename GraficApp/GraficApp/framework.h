@@ -22,4 +22,6 @@
 #include <dinput.h>
 #include <directxmath.h>
 
+#include "DDSTextureLoader11.h"
+
 using namespace DirectX;
