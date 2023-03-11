@@ -572,6 +572,8 @@ void Renderer::InputHandler() {
     pCamera_->Zoom(-mouse.z / 100.0f);
 
     unsigned char* keyboard = pInput_->ReadKeyboard();
+    if (nullptr == keyboard)
+        return;
     float di = 0.0, dj = 0.0, dz = 0.0;
 
     if (keyboard[DIK_UP] || keyboard[DIK_W])
