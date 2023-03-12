@@ -98,5 +98,11 @@
     <FxCompile Include="CubeMapVS.hlsl">
       <Filter>Файлы ресурсов\renderer\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="TVS.hlsl">
+      <Filter>Файлы ресурсов\renderer\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TPS.hlsl">
+      <Filter>Файлы ресурсов\renderer\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
