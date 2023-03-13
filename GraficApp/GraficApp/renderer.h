@@ -33,6 +33,11 @@ struct SkyboxViewMatrixBuffer {
     XMFLOAT4 cameraPos;
 };
 
+struct TransparentVertex {
+    float x, y, z;
+    COLORREF color;
+};
+
 class Renderer
 {
 public:
@@ -62,18 +67,22 @@ private:
     IDXGISwapChain* pSwapChain_;
     ID3D11RenderTargetView* pRenderTargetView_;
 
-    ID3D11Buffer* pVertexBuffer_[2] = { NULL, NULL };
-    ID3D11Buffer* pIndexBuffer_[2] = { NULL, NULL };
-    ID3D11InputLayout* pInputLayout_[2] = { NULL, NULL };
-    ID3D11VertexShader* pVertexShader_[2] = { NULL, NULL };
-    ID3D11PixelShader* pPixelShader_[2] = { NULL, NULL };
+    ID3D11Buffer* pVertexBuffer_[3] = { NULL, NULL, NULL };
+    ID3D11Buffer* pIndexBuffer_[3] = { NULL, NULL, NULL };
+    ID3D11InputLayout* pInputLayout_[3] = { NULL, NULL, NULL };
+    ID3D11VertexShader* pVertexShader_[3] = { NULL, NULL, NULL };
+    ID3D11PixelShader* pPixelShader_[3] = { NULL, NULL, NULL };
 
-    ID3D11Buffer* pWorldMatrixBuffer_[2] = { NULL, NULL };
+    ID3D11Buffer* pWorldMatrixBuffer_[5] = { NULL, NULL, NULL, NULL, NULL };
     ID3D11Buffer* pViewMatrixBuffer_[2] = { NULL, NULL };
     ID3D11RasterizerState* pRasterizerState_;
     ID3D11SamplerState* pSampler_;
 
     ID3D11ShaderResourceView* pTexture_[2] = { NULL, NULL };
+    ID3D11Texture2D* pDepthBuffer_;
+    ID3D11DepthStencilView* pDepthBufferDSV_;
+    ID3D11DepthStencilState* pDepthState_[2] = { NULL, NULL };
+    ID3D11BlendState* pBlendState_;
 
     Camera* pCamera_;
     Input* pInput_;
