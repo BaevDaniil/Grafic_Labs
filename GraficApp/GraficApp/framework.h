@@ -25,3 +25,5 @@
 #include "DDSTextureLoader11.h"
 
 using namespace DirectX;
+
+#define SafeRelease(A) if ((A) != NULL) { (A)->Release(); (A) = NULL; }

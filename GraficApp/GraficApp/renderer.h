@@ -5,6 +5,8 @@
 #include "framework.h"
 #include "camera.h"
 #include "input.h"
+//#include "Scene.h"
+#include "Shape.h"
 
 struct Vertex {
     float x, y, z;
@@ -58,14 +60,17 @@ public:
 private:
     Renderer();
 
+    //Scene* scene = nullptr;
+    Cube cube_;
+
     HRESULT InitScene();
     void InputHandler();
     bool UpdateScene();
 
-    ID3D11Device* pDevice_;
-    ID3D11DeviceContext* pDeviceContext_;
-    IDXGISwapChain* pSwapChain_;
-    ID3D11RenderTargetView* pRenderTargetView_;
+    ID3D11Device* pDevice_ = NULL;
+    ID3D11DeviceContext* pDeviceContext_ = NULL;
+    IDXGISwapChain* pSwapChain_ =  NULL;
+    ID3D11RenderTargetView* pRenderTargetView_ = NULL;
 
     ID3D11Buffer* pVertexBuffer_[3] = { NULL, NULL, NULL };
     ID3D11Buffer* pIndexBuffer_[3] = { NULL, NULL, NULL };
@@ -75,8 +80,8 @@ private:
 
     ID3D11Buffer* pWorldMatrixBuffer_[5] = { NULL, NULL, NULL, NULL, NULL };
     ID3D11Buffer* pViewMatrixBuffer_[2] = { NULL, NULL };
-    ID3D11RasterizerState* pRasterizerState_;
-    ID3D11SamplerState* pSampler_;
+    ID3D11RasterizerState* pRasterizerState_ = NULL;
+    ID3D11SamplerState* pSampler_ = NULL;
 
     ID3D11ShaderResourceView* pTexture_[2] = { NULL, NULL };
     ID3D11Texture2D* pDepthBuffer_;
