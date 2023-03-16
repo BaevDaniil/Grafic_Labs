@@ -1,17 +1,5 @@
 ﻿#include "renderer.h"
 
-namespace
-{
-
-    template <class DirectXClass>
-    void SafeRelease(DirectXClass* pointer)
-    {
-        if (NULL != pointer)
-            pointer->Release();
-    }
-
-}
-
 Renderer& Renderer::GetInstance() {
     static Renderer instance;
     return instance;
@@ -211,7 +199,8 @@ bool Renderer::Init(HINSTANCE hInstance, const HWND hWnd)
 HRESULT Renderer::InitScene() {
     HRESULT result;
 
-    static const Vertex Vertices[24] = {
+    cube_.createGeometry(pDevice_);
+    /*static const Vertex Vertices[24] = {
         {-1.0, -1.0,  1.0, 0, 1},
         { 1.0, -1.0,  1.0, 1, 1},
         { 1.0, -1.0, -1.0, 1, 0},
@@ -249,7 +238,7 @@ HRESULT Renderer::InitScene() {
         12, 14, 13, 12, 15, 14,
         16, 18, 17, 16, 19, 18,
         20, 22, 21, 20, 23, 22
-    };
+    };*/
     static const D3D11_INPUT_ELEMENT_DESC InputDesc[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
@@ -342,7 +331,8 @@ HRESULT Renderer::InitScene() {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
 
-    D3D11_BUFFER_DESC desc = {};
+    cube_.createShaders(pDevice_);
+    /*D3D11_BUFFER_DESC desc = {};
     desc.ByteWidth = sizeof(Vertices);
     desc.Usage = D3D11_USAGE_IMMUTABLE;
     desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -372,9 +362,9 @@ HRESULT Renderer::InitScene() {
         data.SysMemSlicePitch = 0;
 
         result = pDevice_->CreateBuffer(&desc, &data, &pIndexBuffer_[0]);
-    }
+    }*/
 
-    ID3D10Blob* vertexShaderBuffer = nullptr;
+    /*ID3D10Blob* vertexShaderBuffer = nullptr;
     ID3D10Blob* pixelShaderBuffer = nullptr;
     int flags = 0;
 #ifdef _DEBUG
@@ -399,9 +389,9 @@ HRESULT Renderer::InitScene() {
     }
 
     SafeRelease(vertexShaderBuffer);
-    SafeRelease(pixelShaderBuffer);
+    SafeRelease(pixelShaderBuffer);*/
 
-    if (SUCCEEDED(result)) {
+    //if (SUCCEEDED(result)) {
         D3D11_BUFFER_DESC desc = {};
         desc.ByteWidth = sizeof(WorldMatrixBuffer);
         desc.Usage = D3D11_USAGE_DEFAULT;
@@ -419,7 +409,7 @@ HRESULT Renderer::InitScene() {
         data.SysMemSlicePitch = 0;
 
         result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[0]);
-    }
+    //}
     if (SUCCEEDED(result)) {
         D3D11_BUFFER_DESC desc = {};
         desc.ByteWidth = sizeof(ViewMatrixBuffer);
@@ -538,9 +528,14 @@ HRESULT Renderer::InitScene() {
 
         result = pDevice_->CreateRasterizerState(&desc, &pRasterizerState_);
     }
-    if (SUCCEEDED(result)) {
+
+    cube_.setRasterizerState(pDevice_, D3D11_CULL_BACK);
+    cube_.createTextures(pDevice_);
+    /*if (SUCCEEDED(result)) {
         result = CreateDDSTextureFromFile(pDevice_, pDeviceContext_, L"textures/metal.dds", nullptr, &pTexture_[0]);
-    }
+    }*/
+
+
     if (SUCCEEDED(result)) {
         result = CreateDDSTextureFromFileEx(pDevice_, pDeviceContext_, L"textures/texture.dds",
             0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE,
@@ -603,23 +598,26 @@ bool Renderer::UpdateScene() {
     }
     t = (timeCur - timeStart) / 1000.0f;
 
-    WorldMatrixBuffer worldMatrixBuffer;
-    worldMatrixBuffer.worldMatrix = XMMatrixRotationY(t);
+    //WorldMatrixBuffer worldMatrixBuffer;
+    //worldMatrixBuffer.worldMatrix = XMMatrixRotationY(t);
 
-    pDeviceContext_->UpdateSubresource(pWorldMatrixBuffer_[0], 0, nullptr, &worldMatrixBuffer, 0, 0);
+    //pDeviceContext_->UpdateSubresource(pWorldMatrixBuffer_[0], 0, nullptr, &worldMatrixBuffer, 0, 0);
 
     XMMATRIX mView = pCamera_->GetViewMatrix();
 
     XMMATRIX mProjection = XMMatrixPerspectiveFovLH(XM_PI / 4, width_ / (FLOAT)height_, 0.01f, 100.0f);
 
     D3D11_MAPPED_SUBRESOURCE subresource, skyboxSubresource;
-    result = pDeviceContext_->Map(pViewMatrixBuffer_[0], 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
+    /*result = pDeviceContext_->Map(pViewMatrixBuffer_[0], 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
     if (SUCCEEDED(result)) {
         ViewMatrixBuffer& sceneBuffer = *reinterpret_cast<ViewMatrixBuffer*>(subresource.pData);
         sceneBuffer.viewProjectionMatrix = XMMatrixMultiply(mView, mProjection);
         pDeviceContext_->Unmap(pViewMatrixBuffer_[0], 0);
-    }
-    if (SUCCEEDED(result)) {
+    }*/
+
+    cube_.rotate(XMMatrixRotationY(t));
+
+    //if (SUCCEEDED(result)) {
         SkyboxWorldMatrixBuffer skyboxWorldMatrixBuffer;
 
         skyboxWorldMatrixBuffer.worldMatrix = XMMatrixIdentity();
@@ -628,7 +626,7 @@ bool Renderer::UpdateScene() {
         pDeviceContext_->UpdateSubresource(pWorldMatrixBuffer_[1], 0, nullptr, &skyboxWorldMatrixBuffer, 0, 0);
 
         result = pDeviceContext_->Map(pViewMatrixBuffer_[1], 0, D3D11_MAP_WRITE_DISCARD, 0, &skyboxSubresource);
-    }
+    //}
     if (SUCCEEDED(result)) {
         SkyboxViewMatrixBuffer& skyboxSceneBuffer = *reinterpret_cast<SkyboxViewMatrixBuffer*>(skyboxSubresource.pData);
         skyboxSceneBuffer.viewProjectionMatrix = XMMatrixMultiply(mView, mProjection);
@@ -693,7 +691,7 @@ bool Renderer::Render()
         pDeviceContext_->DrawIndexed(numSphereTriangles_ * 3, 0, 0);
     }
 
-    ID3D11ShaderResourceView* resources[] = { pTexture_[0] };
+    /*ID3D11ShaderResourceView* resources[] = {pTexture_[0]};
     pDeviceContext_->PSSetShaderResources(0, 1, resources);
 
     pDeviceContext_->IASetIndexBuffer(pIndexBuffer_[0], DXGI_FORMAT_R16_UINT, 0);
@@ -707,9 +705,15 @@ bool Renderer::Render()
     pDeviceContext_->VSSetConstantBuffers(1, 1, &pViewMatrixBuffer_[0]);
     pDeviceContext_->VSSetShader(pVertexShader_[0], nullptr, 0);
     pDeviceContext_->PSSetShader(pPixelShader_[0], nullptr, 0);
-    pDeviceContext_->DrawIndexed(36, 0, 0);
+    pDeviceContext_->DrawIndexed(36, 0, 0);*/
+    XMMATRIX mView = pCamera_->GetViewMatrix();
+    XMMATRIX mProjection = XMMatrixPerspectiveFovLH(XM_PI / 4, width_ / (FLOAT)height_, 0.01f, 100.0f);
+
+    cube_.draw(XMMatrixMultiply(mView, mProjection), pDeviceContext_);
+
 
     HRESULT result = pSwapChain_->Present(0, 0);
+    
 
     return SUCCEEDED(result);
 }
