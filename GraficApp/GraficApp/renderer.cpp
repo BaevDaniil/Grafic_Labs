@@ -271,7 +271,9 @@ HRESULT Renderer::InitScene() {
         {"COLOR", 0,  DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
 
-    UINT LatLines = 20, LongLines = 20;
+
+    skybox_.createGeometry(pDevice_);
+    /*UINT LatLines = 20, LongLines = 20;
     UINT numSphereVertices = ((LatLines - 2) * LongLines) + 2;
     numSphereTriangles_ = ((LatLines - 3) * (LongLines) * 2) + (LongLines * 2);
 
@@ -355,7 +357,7 @@ HRESULT Renderer::InitScene() {
 
     static const D3D11_INPUT_ELEMENT_DESC SkyboxInputDesc[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
+    };*/
 
     cube_.createShaders(pDevice_);
     /*D3D11_BUFFER_DESC desc = {};
@@ -418,38 +420,38 @@ HRESULT Renderer::InitScene() {
     SafeRelease(pixelShaderBuffer);*/
 
     //if (SUCCEEDED(result)) {
-        D3D11_BUFFER_DESC desc = {};
-        desc.ByteWidth = sizeof(WorldMatrixBuffer);
-        desc.Usage = D3D11_USAGE_DEFAULT;
-        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        desc.CPUAccessFlags = 0;
-        desc.MiscFlags = 0;
-        desc.StructureByteStride = 0;
+    D3D11_BUFFER_DESC desc = {};
+    desc.ByteWidth = sizeof(WorldMatrixBuffer);
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    desc.CPUAccessFlags = 0;
+    desc.MiscFlags = 0;
+    desc.StructureByteStride = 0;
 
-        WorldMatrixBuffer worldMatrixBuffer;
-        worldMatrixBuffer.worldMatrix = DirectX::XMMatrixIdentity();
+    WorldMatrixBuffer worldMatrixBuffer;
+    worldMatrixBuffer.worldMatrix = DirectX::XMMatrixIdentity();
 
-        D3D11_SUBRESOURCE_DATA data;
-        data.pSysMem = &worldMatrixBuffer;
-        data.SysMemPitch = sizeof(worldMatrixBuffer);
-        data.SysMemSlicePitch = 0;
+    D3D11_SUBRESOURCE_DATA data;
+    data.pSysMem = &worldMatrixBuffer;
+    data.SysMemPitch = sizeof(worldMatrixBuffer);
+    data.SysMemSlicePitch = 0;
 
-        result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[0]);
-        if (SUCCEEDED(result)) {
-            worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(4.0f, 0.0f, 0.0f);
-            result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[1]);
-        }
-        if (SUCCEEDED(result)) {
-            worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(1.8f, 0.0f, 0.0f);
-            result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[3]);
-        }
-        if (SUCCEEDED(result)) {
-            worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(2.2f, 0.0f, 0.0f);
-            result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[4]);
-        }
+    /*result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[0]);
+    if (SUCCEEDED(result)) {
+        worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(4.0f, 0.0f, 0.0f);
+        result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[1]);
     }
     if (SUCCEEDED(result)) {
-        D3D11_BUFFER_DESC desc = {};
+        worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(1.8f, 0.0f, 0.0f);
+        result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[3]);
+    }
+    if (SUCCEEDED(result)) {
+        worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(2.2f, 0.0f, 0.0f);
+        result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[4]);
+    }*/
+    //}
+    //if (SUCCEEDED(result)) {
+        /*D3D11_BUFFER_DESC*/ desc = {};
         desc.ByteWidth = sizeof(ViewMatrixBuffer);
         desc.Usage = D3D11_USAGE_DYNAMIC;
         desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -458,8 +460,8 @@ HRESULT Renderer::InitScene() {
         desc.StructureByteStride = 0;
 
         result = pDevice_->CreateBuffer(&desc, nullptr, &pViewMatrixBuffer_[0]);
-    }
-    {
+    //}
+    /* {
         if (SUCCEEDED(result)) {
             D3D11_BUFFER_DESC desc = {};
             desc.ByteWidth = sizeof(SkyboxVertex) * numSphereVertices;
@@ -488,9 +490,9 @@ HRESULT Renderer::InitScene() {
             data.pSysMem = &indices[0];
 
             result = pDevice_->CreateBuffer(&desc, &data, &pIndexBuffer_[1]);
-        }
+        }*/
 
-        ID3D10Blob* vertexShaderBuffer = nullptr;
+        /*ID3D10Blob* vertexShaderBuffer = nullptr;
         ID3D10Blob* pixelShaderBuffer = nullptr;
         int flags = 0;
 #ifdef _DEBUG
@@ -514,9 +516,9 @@ HRESULT Renderer::InitScene() {
         }
 
         SafeRelease(vertexShaderBuffer);
-        SafeRelease(pixelShaderBuffer);
+        SafeRelease(pixelShaderBuffer);*/
 
-        if (SUCCEEDED(result)) {
+        /*if (SUCCEEDED(result)) {
             D3D11_BUFFER_DESC desc = {};
             desc.ByteWidth = sizeof(SkyboxWorldMatrixBuffer);
             desc.Usage = D3D11_USAGE_DEFAULT;
@@ -547,8 +549,8 @@ HRESULT Renderer::InitScene() {
             desc.StructureByteStride = 0;
 
             result = pDevice_->CreateBuffer(&desc, nullptr, &pViewMatrixBuffer_[1]);
-        }
-    }
+        }*/
+    //}
     {
         if (SUCCEEDED(result)) {
             D3D11_BUFFER_DESC desc = {};
@@ -631,12 +633,13 @@ HRESULT Renderer::InitScene() {
         result = CreateDDSTextureFromFile(pDevice_, pDeviceContext_, L"textures/metal.dds", nullptr, &pTexture_[0]);
     }*/
 
-
-    if (SUCCEEDED(result)) {
+    skybox_.setRasterizerState(pDevice_, D3D11_CULL_BACK);
+    skybox_.createTextures(pDevice_);
+    /*if (SUCCEEDED(result)) {
         result = CreateDDSTextureFromFileEx(pDevice_, pDeviceContext_, L"textures/texture.dds",
             0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE,
             DDS_LOADER_DEFAULT, nullptr, &pTexture_[1]);
-    }
+    }*/
     if (SUCCEEDED(result)) {
         D3D11_SAMPLER_DESC desc = {};
 
@@ -735,7 +738,7 @@ bool Renderer::UpdateScene() {
 
     //pDeviceContext_->UpdateSubresource(pWorldMatrixBuffer_[0], 0, nullptr, &worldMatrixBuffer, 0, 0);
 
-    XMMATRIX mView = pCamera_->GetViewMatrix();
+    //XMMATRIX mView = pCamera_->GetViewMatrix();
 
     XMMATRIX mProjection = XMMatrixPerspectiveFovLH(XM_PI / 3, width_ / (FLOAT)height_, 100.0f, 0.01f);
 
@@ -750,7 +753,7 @@ bool Renderer::UpdateScene() {
     cube_.rotate(XMMatrixRotationY(t));
 
     //if (SUCCEEDED(result)) {
-        SkyboxWorldMatrixBuffer skyboxWorldMatrixBuffer;
+    /*    SkyboxWorldMatrixBuffer skyboxWorldMatrixBuffer;
 
         skyboxWorldMatrixBuffer.worldMatrix = XMMatrixIdentity();
         skyboxWorldMatrixBuffer.size = XMFLOAT4(radius_, 0.0f, 0.0f, 0.0f);
@@ -765,7 +768,9 @@ bool Renderer::UpdateScene() {
         XMFLOAT3 cameraPos = pCamera_->GetPosition();
         skyboxSceneBuffer.cameraPos = XMFLOAT4(cameraPos.x, cameraPos.y, cameraPos.z, 1.0f);
         pDeviceContext_->Unmap(pViewMatrixBuffer_[1], 0);
-    }
+    }*/
+    
+    result = skybox_.update(pDeviceContext_, pCamera_, mProjection);
 
     return SUCCEEDED(result);
 }
@@ -828,7 +833,7 @@ bool Renderer::Render()
 
 
     pDeviceContext_->OMSetDepthStencilState(pDepthState_[1], 0);
-    {
+    /* {
         ID3D11ShaderResourceView* resources[] = { pTexture_[1] };
         pDeviceContext_->PSSetShaderResources(0, 1, resources);
 
@@ -844,9 +849,10 @@ bool Renderer::Render()
         pDeviceContext_->PSSetShader(pPixelShader_[1], nullptr, 0);
 
         pDeviceContext_->DrawIndexed(numSphereTriangles_ * 3, 0, 0);
-    }
+    }*/
+    skybox_.draw(pDeviceContext_);
 
-    {
+    /* {
         pDeviceContext_->IASetIndexBuffer(pIndexBuffer_[2], DXGI_FORMAT_R16_UINT, 0);
         ID3D11Buffer* vertexBuffers[] = { pVertexBuffer_[2] };
         UINT strides[] = { 16 };
@@ -865,7 +871,7 @@ bool Renderer::Render()
 
         pDeviceContext_->VSSetConstantBuffers(0, 1, &pWorldMatrixBuffer_[4]);
         pDeviceContext_->DrawIndexed(6, 0, 0);
-    }
+    }*/
     HRESULT result = pSwapChain_->Present(0, 0);
     
 
@@ -925,5 +931,9 @@ bool Renderer::Resize(const unsigned width, const unsigned height)
     float halfH = height_ / float(width_) * halfW;
     radius_ = sqrtf(n * n + halfH * halfH + halfW * halfW) * 1.1f;
 
+    skybox_.setRadius(radius_);
+
     return true;
+
+
 }

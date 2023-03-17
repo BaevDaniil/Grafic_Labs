@@ -7,6 +7,7 @@
 #include "input.h"
 //#include "Scene.h"
 #include "Shape.h"
+#include "SkyBox.h"
 
 struct Vertex {
     float x, y, z;
@@ -62,6 +63,7 @@ private:
 
     //Scene* scene = nullptr;
     Cube cube_;
+    SkyBox skybox_;
 
     HRESULT InitScene();
     void InputHandler();
