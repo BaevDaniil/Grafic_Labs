@@ -227,7 +227,7 @@ HRESULT SkyBox::setRasterizerState(ID3D11Device* m_pDevice, D3D11_CULL_MODE cull
 
     rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
     rasterizerDesc.CullMode = cullMode;
-    result = m_pDevice->CreateRasterizerState(&rasterizerDesc, &rasterizerState);
+    result = m_pDevice->CreateRasterizerState(&rasterizerDesc, &pRasterizerState_);
 
     return result;
 }
@@ -259,7 +259,8 @@ HRESULT SkyBox::update(ID3D11DeviceContext* m_pDeviceContext, Camera* pCamera, X
 }
 
 void SkyBox::draw(ID3D11DeviceContext* m_pDeviceContext) {
-    //ID3D11ShaderResourceView* resources[] = { pTexture_ };
+    m_pDeviceContext->RSSetState(pRasterizerState_);
+    m_pDeviceContext->PSSetSamplers(0, 1, samplers.data());
     m_pDeviceContext->PSSetShaderResources(0, 1, resources.data());
 
     m_pDeviceContext->IASetIndexBuffer(pIndexBuffer_, DXGI_FORMAT_R32_UINT, 0);

@@ -518,6 +518,8 @@ HRESULT Renderer::InitScene() {
         SafeRelease(vertexShaderBuffer);
         SafeRelease(pixelShaderBuffer);*/
 
+        skybox_.createShaders(pDevice_);
+
         /*if (SUCCEEDED(result)) {
             D3D11_BUFFER_DESC desc = {};
             desc.ByteWidth = sizeof(SkyboxWorldMatrixBuffer);
@@ -851,7 +853,7 @@ bool Renderer::Render()
         pDeviceContext_->DrawIndexed(numSphereTriangles_ * 3, 0, 0);
     }*/
     skybox_.draw(pDeviceContext_);
-
+    
     /* {
         pDeviceContext_->IASetIndexBuffer(pIndexBuffer_[2], DXGI_FORMAT_R16_UINT, 0);
         ID3D11Buffer* vertexBuffers[] = { pVertexBuffer_[2] };

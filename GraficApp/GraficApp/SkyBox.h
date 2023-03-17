@@ -28,16 +28,14 @@ public:
     void draw(ID3D11DeviceContext* m_pDeviceContext);
 
 
-    void setRadius(UINT radius) { radius_ = radius; };
+    void setRadius(float radius) { radius_ = radius; };
 private:
     ID3D11Buffer* pVertexBuffer_ = NULL;
     ID3D11Buffer* pIndexBuffer_ = NULL;
     ID3D11InputLayout* pInputLayout_ = NULL;
     ID3D11VertexShader* pVertexShader_ = NULL;
-    ID3D11RasterizerState* pRasterizerState_;
+    ID3D11RasterizerState* pRasterizerState_ = NULL;
     ID3D11PixelShader* pPixelShader_ = NULL;
-
-    ID3D11RasterizerState* rasterizerState;
 
     std::vector<ID3D11Buffer*> constBuffers;
     std::vector<ID3D11SamplerState*> samplers;
