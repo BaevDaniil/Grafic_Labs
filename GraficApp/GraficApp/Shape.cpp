@@ -159,6 +159,7 @@ void Cube::update(ID3D11DeviceContext* m_pDeviceContext) {
 
 void Cube::draw(ID3D11Buffer* pViewMatrixBuffer, ID3D11DeviceContext* pDeviceContext)
 {
+    pDeviceContext->RSSetState(rasterizerState);
     pDeviceContext->PSSetShaderResources(0, 1, resources.data());
 
     pDeviceContext->IASetIndexBuffer(pIndexBuffer_, DXGI_FORMAT_R16_UINT, 0);

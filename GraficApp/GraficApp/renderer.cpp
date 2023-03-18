@@ -590,13 +590,13 @@ HRESULT Renderer::InitScene() {
         result = pDevice_->CreateRasterizerState(&desc, &pRasterizerState_);
     }
 
-    cube_.setRasterizerState(pDevice_, D3D11_CULL_NONE);
+    cube_.setRasterizerState(pDevice_, D3D11_CULL_BACK);
     cube_.createTextures(pDevice_);
     /*if (SUCCEEDED(result)) {
         result = CreateDDSTextureFromFile(pDevice_, pDeviceContext_, L"textures/metal.dds", nullptr, &pTexture_[0]);
     }*/
 
-    skybox_.setRasterizerState(pDevice_, D3D11_CULL_NONE);
+    skybox_.setRasterizerState(pDevice_, D3D11_CULL_BACK);
     skybox_.createTextures(pDevice_);
     /*if (SUCCEEDED(result)) {
         result = CreateDDSTextureFromFileEx(pDevice_, pDeviceContext_, L"textures/texture.dds",
