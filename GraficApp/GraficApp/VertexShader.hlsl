@@ -1,5 +1,9 @@
-cbuffer GeomBuffer : register (b0) {
-    float4x4 model;
+cbuffer WorldMatrixBuffer : register (b0) {
+    float4x4 worldMatrix;
+};
+
+cbuffer SceneMatrixBuffer : register (b1) {
+    float4x4 viewProjectionMatrix;
 };
 
 struct VS_INPUT {
@@ -14,7 +18,9 @@ struct PS_INPUT {
 
 PS_INPUT main(VS_INPUT input) {
     PS_INPUT output;
-    output.position = mul(model, float4(input.position, 1.0f));
+
+    output.position = mul(viewProjectionMatrix, mul(worldMatrix, float4(input.position, 1.0f)));
     output.uv = input.uv;
+
     return output;
 }

@@ -93,7 +93,7 @@ HRESULT SkyBox::createGeometry(ID3D11Device* m_pDevice) {
 
     D3D11_SUBRESOURCE_DATA data;
     ZeroMemory(&data, sizeof(data));
-    data.pSysMem = &vertices[0];
+    data.pSysMem = vertices.data();
     HRESULT result = m_pDevice->CreateBuffer(&desc, &data, &pVertexBuffer_);
 
     if (SUCCEEDED(result)) {
@@ -107,7 +107,7 @@ HRESULT SkyBox::createGeometry(ID3D11Device* m_pDevice) {
         desc.StructureByteStride = 0;
 
         D3D11_SUBRESOURCE_DATA data;
-        data.pSysMem = &indices[0];
+        data.pSysMem = indices.data();
 
         result = m_pDevice->CreateBuffer(&desc, &data, &pIndexBuffer_);
     }
@@ -160,12 +160,10 @@ HRESULT SkyBox::createShaders(ID3D11Device* m_pDevice) {
     flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-    //if (SUCCEEDED(result)) {
-        HRESULT result = D3DCompileFromFile(L"CubeMapVS.hlsl", NULL, NULL, "main", "vs_5_0", flags, 0, &vertexShaderBuffer, NULL);
-        if (SUCCEEDED(result)) {
-            result = m_pDevice->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &pVertexShader_);
-        }
-    //}
+    HRESULT result = D3DCompileFromFile(L"CubeMapVS.hlsl", NULL, NULL, "main", "vs_5_0", flags, 0, &vertexShaderBuffer, NULL);
+    if (SUCCEEDED(result)) {
+        result = m_pDevice->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &pVertexShader_);
+    }
     if (SUCCEEDED(result)) {
         result = D3DCompileFromFile(L"CubeMapPS.hlsl", NULL, NULL, "main", "ps_5_0", flags, 0, &pixelShaderBuffer, NULL);
         if (SUCCEEDED(result)) {
@@ -184,36 +182,14 @@ HRESULT SkyBox::createShaders(ID3D11Device* m_pDevice) {
 }
 
 HRESULT SkyBox::createTextures(ID3D11Device* m_pDevice) {
-    ID3D11SamplerState* m_pSampler;
     ID3D11ShaderResourceView* m_pTextureView;
 
-    //if (SUCCEEDED(result)) {
-        HRESULT result = CreateDDSTextureFromFileEx(m_pDevice, L"textures/texture.dds",
+    HRESULT result = CreateDDSTextureFromFileEx(m_pDevice, L"textures/texture.dds",
             0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE,
             DDS_LOADER_DEFAULT, nullptr, &m_pTextureView);
-    //}
 
     if (SUCCEEDED(result)) {
         resources.push_back(m_pTextureView);
-        D3D11_SAMPLER_DESC desc = {};
-
-        desc.Filter = D3D11_FILTER_ANISOTROPIC;
-        desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-        desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-        desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-        desc.MinLOD = -D3D11_FLOAT32_MAX;
-        desc.MaxLOD = D3D11_FLOAT32_MAX;
-        desc.MipLODBias = 0.0f;
-        desc.MaxAnisotropy = 16;
-        desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-        desc.BorderColor[0] = desc.BorderColor[1] = desc.BorderColor[2] = desc.BorderColor[3] = 1.0f;
-
-        result = m_pDevice->CreateSamplerState(&desc, &m_pSampler);
-    }
-
-    if (SUCCEEDED(result))
-    {
-        samplers.push_back(m_pSampler);
     }
 
     return result;
@@ -238,8 +214,6 @@ HRESULT SkyBox::update(ID3D11DeviceContext* m_pDeviceContext, Camera* pCamera, X
 
     XMMATRIX mView = pCamera->GetViewMatrix();
 
-    //XMMATRIX mProjection = XMMatrixPerspectiveFovLH(XM_PI / 3, width_ / (FLOAT)height_, 100.0f, 0.01f);
-
     skyboxWorldMatrixBuffer.worldMatrix = XMMatrixIdentity();
     skyboxWorldMatrixBuffer.size = XMFLOAT4(radius_, 0.0f, 0.0f, 0.0f);
 
@@ -260,7 +234,6 @@ HRESULT SkyBox::update(ID3D11DeviceContext* m_pDeviceContext, Camera* pCamera, X
 
 void SkyBox::draw(ID3D11DeviceContext* m_pDeviceContext) {
     m_pDeviceContext->RSSetState(pRasterizerState_);
-    m_pDeviceContext->PSSetSamplers(0, 1, samplers.data());
     m_pDeviceContext->PSSetShaderResources(0, 1, resources.data());
 
     m_pDeviceContext->IASetIndexBuffer(pIndexBuffer_, DXGI_FORMAT_R32_UINT, 0);

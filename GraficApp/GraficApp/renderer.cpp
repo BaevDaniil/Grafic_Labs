@@ -213,45 +213,6 @@ HRESULT Renderer::InitScene() {
     HRESULT result;
 
     cube_.createGeometry(pDevice_);
-    /*static const Vertex Vertices[24] = {
-        {-1.0, -1.0,  1.0, 0, 1},
-        { 1.0, -1.0,  1.0, 1, 1},
-        { 1.0, -1.0, -1.0, 1, 0},
-        {-1.0, -1.0, -1.0, 0, 0},
-
-        {-1.0,  1.0, -1.0, 0, 1},
-        { 1.0,  1.0, -1.0, 1, 1},
-        { 1.0,  1.0,  1.0, 1, 0},
-        {-1.0,  1.0,  1.0, 0, 0},
-
-        { 1.0, -1.0, -1.0, 0, 1},
-        { 1.0, -1.0,  1.0, 1, 1},
-        { 1.0,  1.0,  1.0, 1, 0},
-        { 1.0,  1.0, -1.0, 0, 0},
-
-        {-1.0, -1.0,  1.0, 0, 1},
-        {-1.0, -1.0, -1.0, 1, 1},
-        {-1.0,  1.0, -1.0, 1, 0},
-        {-1.0,  1.0,  1.0, 0, 0},
-
-        { 1.0, -1.0,  1.0, 0, 1},
-        {-1.0, -1.0,  1.0, 1, 1},
-        {-1.0,  1.0,  1.0, 1, 0},
-        { 1.0,  1.0,  1.0, 0, 0},
-
-        {-1.0, -1.0, -1.0, 0, 1},
-        { 1.0, -1.0, -1.0, 1, 1},
-        { 1.0,  1.0, -1.0, 1, 0},
-        {-1.0,  1.0, -1.0, 0, 0}
-    };
-    static const USHORT Indices[] = {
-        0, 2, 1, 0, 3, 2,
-        4, 6, 5, 4, 7, 6,
-        8, 10, 9, 8, 11, 10,
-        12, 14, 13, 12, 15, 14,
-        16, 18, 17, 16, 19, 18,
-        20, 22, 21, 20, 23, 22
-    };*/
     static const D3D11_INPUT_ELEMENT_DESC InputDesc[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
@@ -629,13 +590,13 @@ HRESULT Renderer::InitScene() {
         result = pDevice_->CreateRasterizerState(&desc, &pRasterizerState_);
     }
 
-    cube_.setRasterizerState(pDevice_, D3D11_CULL_BACK);
+    cube_.setRasterizerState(pDevice_, D3D11_CULL_NONE);
     cube_.createTextures(pDevice_);
     /*if (SUCCEEDED(result)) {
         result = CreateDDSTextureFromFile(pDevice_, pDeviceContext_, L"textures/metal.dds", nullptr, &pTexture_[0]);
     }*/
 
-    skybox_.setRasterizerState(pDevice_, D3D11_CULL_BACK);
+    skybox_.setRasterizerState(pDevice_, D3D11_CULL_NONE);
     skybox_.createTextures(pDevice_);
     /*if (SUCCEEDED(result)) {
         result = CreateDDSTextureFromFileEx(pDevice_, pDeviceContext_, L"textures/texture.dds",
@@ -740,19 +701,21 @@ bool Renderer::UpdateScene() {
 
     //pDeviceContext_->UpdateSubresource(pWorldMatrixBuffer_[0], 0, nullptr, &worldMatrixBuffer, 0, 0);
 
-    //XMMATRIX mView = pCamera_->GetViewMatrix();
+    XMMATRIX mView = pCamera_->GetViewMatrix();
 
     XMMATRIX mProjection = XMMatrixPerspectiveFovLH(XM_PI / 3, width_ / (FLOAT)height_, 100.0f, 0.01f);
 
     D3D11_MAPPED_SUBRESOURCE subresource, skyboxSubresource;
-    /*result = pDeviceContext_->Map(pViewMatrixBuffer_[0], 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
+    result = pDeviceContext_->Map(pViewMatrixBuffer_[0], 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
     if (SUCCEEDED(result)) {
         ViewMatrixBuffer& sceneBuffer = *reinterpret_cast<ViewMatrixBuffer*>(subresource.pData);
         sceneBuffer.viewProjectionMatrix = XMMatrixMultiply(mView, mProjection);
         pDeviceContext_->Unmap(pViewMatrixBuffer_[0], 0);
-    }*/
+    }
 
     cube_.rotate(XMMatrixRotationY(t));
+    cube_.update(pDeviceContext_);
+
 
     //if (SUCCEEDED(result)) {
     /*    SkyboxWorldMatrixBuffer skyboxWorldMatrixBuffer;
@@ -810,11 +773,11 @@ bool Renderer::Render()
     pDeviceContext_->RSSetState(pRasterizerState_);
     pDeviceContext_->OMSetDepthStencilState(pDepthState_[0], 0);
 
-    /*ID3D11ShaderResourceView* resources[] = {pTexture_[0]};
-    pDeviceContext_->PSSetShaderResources(0, 1, resources);
-
     ID3D11SamplerState* samplers[] = { pSampler_ };
     pDeviceContext_->PSSetSamplers(0, 1, samplers);
+
+    /*ID3D11ShaderResourceView* resources[] = {pTexture_[0]};
+    pDeviceContext_->PSSetShaderResources(0, 1, resources);
 
     pDeviceContext_->IASetIndexBuffer(pIndexBuffer_[0], DXGI_FORMAT_R16_UINT, 0);
     ID3D11Buffer* vertexBuffers[] = { pVertexBuffer_[0] };
@@ -831,7 +794,7 @@ bool Renderer::Render()
     XMMATRIX mView = pCamera_->GetViewMatrix();
     XMMATRIX mProjection = XMMatrixPerspectiveFovLH(XM_PI / 4, width_ / (FLOAT)height_, 0.01f, 100.0f);
 
-    cube_.draw(XMMatrixMultiply(mView, mProjection), pDeviceContext_);
+    cube_.draw(pViewMatrixBuffer_[0], pDeviceContext_);
 
 
     pDeviceContext_->OMSetDepthStencilState(pDepthState_[1], 0);

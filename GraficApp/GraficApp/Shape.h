@@ -1,7 +1,7 @@
 #pragma once
 
 #include "framework.h"
-//#include "Shaders.h"
+#include "camera.h"
 
 #include <vector>
 
@@ -12,7 +12,8 @@ public:
     virtual HRESULT createShaders(ID3D11Device* m_pDevice) = 0;
     virtual HRESULT createTextures(ID3D11Device* m_pDevice) = 0;
 
-    virtual void draw(const DirectX::XMMATRIX& vp, ID3D11DeviceContext* m_pDeviceContext) = 0;
+    virtual void update(ID3D11DeviceContext* m_pDeviceContext) = 0;
+    virtual void draw(ID3D11Buffer* pViewMatrixBuffer, ID3D11DeviceContext* pDeviceContext) = 0;
 
     virtual HRESULT setRasterizerState(ID3D11Device* m_pDevice, D3D11_CULL_MODE cullMode);
 
@@ -29,11 +30,9 @@ protected:
 
     ID3D11RasterizerState* rasterizerState;
 
-    std::vector<ID3D11Buffer*> constBuffers;
-    std::vector<ID3D11SamplerState*> samplers;
     std::vector<ID3D11ShaderResourceView*> resources;
 
-    DirectX::XMMATRIX model = DirectX::XMMatrixIdentity();
+    DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity();
     DirectX::XMMATRIX translateMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
     DirectX::XMMATRIX scaleMatrix = DirectX::XMMatrixScaling(1.0f, 1.0f, 1.0f);
     DirectX::XMMATRIX rotateMatrix = DirectX::XMMatrixRotationAxis(DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), 0.0f);
@@ -42,9 +41,9 @@ protected:
 
 class Cube: public Shape
 {
-    struct GeomBuffer
+    struct WorldMatrixBuffer
     {
-	 DirectX::XMMATRIX modelMatrix;
+	 DirectX::XMMATRIX worldMatrix;
     };
 
     struct Vertex
@@ -56,7 +55,8 @@ public:
     HRESULT createGeometry(ID3D11Device* m_pDevice) final;
     HRESULT createShaders(ID3D11Device* m_pDevice) final;
     HRESULT createTextures(ID3D11Device* m_pDevice) final;
-    void draw(const DirectX::XMMATRIX& vp, ID3D11DeviceContext* m_pDeviceContext) final;
+    void update(ID3D11DeviceContext* m_pDeviceContext) final;
+    void draw(ID3D11Buffer* pViewMatrixBuffer, ID3D11DeviceContext* pDeviceContext) final;
 private:
-    GeomBuffer geomBuffer;
+    ID3D11Buffer* pWorldMatrixBuffer_;
 };

@@ -2,39 +2,38 @@
 
 HRESULT Cube::createGeometry(ID3D11Device* pDevice)
 {
-    static const Vertex v[] = {
-    { -1.0, -1.0,  1.0, 0, 1 },
-    { 1.0, -1.0,  1.0, 1, 1 },
-    { 1.0, -1.0, -1.0, 1, 0 },
-    { -1.0, -1.0, -1.0, 0, 0 },
+    static const Vertex Vertices[] = {
+        {-1.0, -1.0,  1.0, 0, 1},
+        { 1.0, -1.0,  1.0, 1, 1},
+        { 1.0, -1.0, -1.0, 1, 0},
+        {-1.0, -1.0, -1.0, 0, 0},
 
-    { -1.0,  1.0, -1.0, 0, 1 },
-    { 1.0,  1.0, -1.0, 1, 1 },
-    { 1.0,  1.0,  1.0, 1, 0 },
-    { -1.0,  1.0,  1.0, 0, 0 },
+        {-1.0,  1.0, -1.0, 0, 1},
+        { 1.0,  1.0, -1.0, 1, 1},
+        { 1.0,  1.0,  1.0, 1, 0},
+        {-1.0,  1.0,  1.0, 0, 0},
 
-    { 1.0, -1.0, -1.0, 0, 1 },
-    { 1.0, -1.0,  1.0, 1, 1 },
-    { 1.0,  1.0,  1.0, 1, 0 },
-    { 1.0,  1.0, -1.0, 0, 0 },
+        { 1.0, -1.0, -1.0, 0, 1},
+        { 1.0, -1.0,  1.0, 1, 1},
+        { 1.0,  1.0,  1.0, 1, 0},
+        { 1.0,  1.0, -1.0, 0, 0},
 
-    { -1.0, -1.0,  1.0, 0, 1 },
-    { -1.0, -1.0, -1.0, 1, 1 },
-    { -1.0,  1.0, -1.0, 1, 0 },
-    { -1.0,  1.0,  1.0, 0, 0 },
+        {-1.0, -1.0,  1.0, 0, 1},
+        {-1.0, -1.0, -1.0, 1, 1},
+        {-1.0,  1.0, -1.0, 1, 0},
+        {-1.0,  1.0,  1.0, 0, 0},
 
-    { 1.0, -1.0,  1.0, 0, 1 },
-    { -1.0, -1.0,  1.0, 1, 1 },
-    { -1.0,  1.0,  1.0, 1, 0 },
-    { 1.0,  1.0,  1.0, 0, 0 },
+        { 1.0, -1.0,  1.0, 0, 1},
+        {-1.0, -1.0,  1.0, 1, 1},
+        {-1.0,  1.0,  1.0, 1, 0},
+        { 1.0,  1.0,  1.0, 0, 0},
 
-    { -1.0, -1.0, -1.0, 0, 1 },
-    { 1.0, -1.0, -1.0, 1, 1 },
-    { 1.0,  1.0, -1.0, 1, 0 },
-    { -1.0,  1.0, -1.0, 0, 0 }
+        {-1.0, -1.0, -1.0, 0, 1},
+        { 1.0, -1.0, -1.0, 1, 1},
+        { 1.0,  1.0, -1.0, 1, 0},
+        {-1.0,  1.0, -1.0, 0, 0}
     };
-
-    static const DWORD Indices[] = {
+    static const USHORT Indices[] = {
         0, 2, 1, 0, 3, 2,
         4, 6, 5, 4, 7, 6,
         8, 10, 9, 8, 11, 10,
@@ -44,7 +43,7 @@ HRESULT Cube::createGeometry(ID3D11Device* pDevice)
     };
 
     D3D11_BUFFER_DESC desc = {};
-    desc.ByteWidth = sizeof(Vertex) * ARRAYSIZE(v);
+    desc.ByteWidth = sizeof(Vertices);
     desc.Usage = D3D11_USAGE_IMMUTABLE;
     desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     desc.CPUAccessFlags = 0;
@@ -52,8 +51,8 @@ HRESULT Cube::createGeometry(ID3D11Device* pDevice)
     desc.StructureByteStride = 0;
 
     D3D11_SUBRESOURCE_DATA data;
-    data.pSysMem = v;
-    data.SysMemPitch = sizeof(Vertex) * ARRAYSIZE(v);
+    data.pSysMem = &Vertices;
+    data.SysMemPitch = sizeof(Vertices);
     data.SysMemSlicePitch = 0;
 
     HRESULT hr = pDevice->CreateBuffer(&desc, &data, &pVertexBuffer_);
@@ -75,25 +74,23 @@ HRESULT Cube::createGeometry(ID3D11Device* pDevice)
         hr = pDevice->CreateBuffer(&desc, &data, &pIndexBuffer_);
     }
 
-    ID3D11Buffer* pGeomBuffer;
+    desc = {};
+    desc.ByteWidth = sizeof(WorldMatrixBuffer);
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    desc.CPUAccessFlags = 0;
+    desc.MiscFlags = 0;
+    desc.StructureByteStride = 0;
 
-    if (SUCCEEDED(hr))
-    {
-        desc = { 0 };
-        desc.ByteWidth = sizeof(GeomBuffer);
-        desc.Usage = D3D11_USAGE_DEFAULT;
-        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        desc.CPUAccessFlags = 0;
-        desc.MiscFlags = 0;
-        desc.StructureByteStride = 0;
+    WorldMatrixBuffer worldMatrixBuffer;
+    worldMatrixBuffer.worldMatrix = DirectX::XMMatrixIdentity();
 
-        hr = pDevice->CreateBuffer(&desc, NULL, &pGeomBuffer);
-    }
+    data = {};
+    data.pSysMem = &worldMatrixBuffer;
+    data.SysMemPitch = sizeof(worldMatrixBuffer);
+    data.SysMemSlicePitch = 0;
 
-    if (SUCCEEDED(hr))
-    {
-        constBuffers.push_back(pGeomBuffer);
-    }
+    hr = pDevice->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_);
 
     return hr;
 }
@@ -146,57 +143,35 @@ HRESULT Cube::createTextures(ID3D11Device* pDevice) {
     if (SUCCEEDED(result))
     {
         resources.push_back(m_pTextureView);
-
-        D3D11_SAMPLER_DESC desc = {};
-        desc.Filter = D3D11_FILTER_ANISOTROPIC;
-        desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-        desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-        desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-        desc.MinLOD = -FLT_MAX;
-        desc.MaxLOD = FLT_MAX;
-        desc.MipLODBias = 0.0f;
-        desc.MaxAnisotropy = 16;
-        desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-        desc.BorderColor[0] = desc.BorderColor[1] = desc.BorderColor[2] = desc.BorderColor[3] = 1.0f;
-        result = pDevice->CreateSamplerState(&desc, &m_pSampler);
-    }
-
-    if (SUCCEEDED(result))
-    {
-        samplers.push_back(m_pSampler);
     }
 
     return result;
 }
 
-void Cube::draw(const DirectX::XMMATRIX& vp, ID3D11DeviceContext* pDeviceContext)
+void Cube::update(ID3D11DeviceContext* m_pDeviceContext) {
+    worldMatrix = DirectX::XMMatrixIdentity();
+    worldMatrix = rotateMatrix * scaleMatrix * translateMatrix;
+    WorldMatrixBuffer worldMatrixBuffer;
+    worldMatrixBuffer.worldMatrix = worldMatrix;
+
+    m_pDeviceContext->UpdateSubresource(pWorldMatrixBuffer_, 0, nullptr, &worldMatrixBuffer, 0, 0);
+}
+
+void Cube::draw(ID3D11Buffer* pViewMatrixBuffer, ID3D11DeviceContext* pDeviceContext)
 {
-    pDeviceContext->RSSetState(rasterizerState);
+    pDeviceContext->PSSetShaderResources(0, 1, resources.data());
 
-    model = DirectX::XMMatrixIdentity();
-    model = rotateMatrix * scaleMatrix * translateMatrix;
-    geomBuffer.modelMatrix = model * vp;
-    pDeviceContext->UpdateSubresource(constBuffers[0], 0, nullptr, &geomBuffer, 0, 0);
-
+    pDeviceContext->IASetIndexBuffer(pIndexBuffer_, DXGI_FORMAT_R16_UINT, 0);
+    ID3D11Buffer* vertexBuffers[] = { pVertexBuffer_ };
+    UINT strides[] = { 20 };
+    UINT offsets[] = { 0 };
+    pDeviceContext->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
     pDeviceContext->IASetInputLayout(pInputLayout_);
-
+    pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    pDeviceContext->VSSetConstantBuffers(0, 1, &pWorldMatrixBuffer_);
+    pDeviceContext->VSSetConstantBuffers(1, 1, &pViewMatrixBuffer);
     pDeviceContext->VSSetShader(pVertexShader_, nullptr, 0);
     pDeviceContext->PSSetShader(pPixelShader_, nullptr, 0);
-
-    pDeviceContext->VSSetConstantBuffers(0, 1, constBuffers.data());
-
-    if (!samplers.empty() && !resources.empty())
-    {
-        pDeviceContext->PSSetSamplers(0, 1, samplers.data());
-
-        pDeviceContext->PSSetShaderResources(0, 1, resources.data());
-    }
-
-    pDeviceContext->IASetIndexBuffer(pIndexBuffer_, DXGI_FORMAT_R32_UINT, 0);
-    UINT stride = sizeof(Vertex);
-    UINT offset = 0;
-    pDeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer_, &stride, &offset);
-
     pDeviceContext->DrawIndexed(36, 0, 0);
 }
 

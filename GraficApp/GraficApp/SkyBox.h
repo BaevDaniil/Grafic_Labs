@@ -37,13 +37,10 @@ private:
     ID3D11RasterizerState* pRasterizerState_ = NULL;
     ID3D11PixelShader* pPixelShader_ = NULL;
 
-    std::vector<ID3D11Buffer*> constBuffers;
-    std::vector<ID3D11SamplerState*> samplers;
     std::vector<ID3D11ShaderResourceView*> resources;
 
     ID3D11Buffer* pWorldMatrixBuffer_;
     ID3D11Buffer* pViewMatrixBuffer_;
-    //SkyboxWorldMatrixBuffer* pWorldMatrixBuffer_;
 
     UINT numSphereTriangles_;
     float radius_ = 1.0f;
