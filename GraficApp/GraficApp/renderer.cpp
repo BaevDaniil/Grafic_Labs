@@ -212,7 +212,21 @@ bool Renderer::Init(HINSTANCE hInstance, const HWND hWnd)
 HRESULT Renderer::InitScene() {
     HRESULT result;
 
-    cube_.createGeometry(pDevice_);
+    for (int i = 0; i <= 3; ++i) {
+        Cube* cube = new Cube;
+        cube->createGeometry(pDevice_);
+        cube->createShaders(pDevice_);
+        cube->setRasterizerState(pDevice_, D3D11_CULL_BACK);
+        cube->createTextures(pDevice_);
+        shapes_.push_back(cube);
+    }
+    shapes_[0]->translate(DirectX::XMMatrixTranslation(4.0f, 0.0f, -5.0f));
+    shapes_[1]->translate(DirectX::XMMatrixTranslation(4.0f, 0.0f, 0.0f));
+    shapes_[2]->translate(DirectX::XMMatrixTranslation(4.0f, 0.0f, 5.0f));
+    shapes_[3]->translate(DirectX::XMMatrixTranslation(10.0f, 0.0f, 0.0f));
+    shapes_[3]->scale(DirectX::XMMatrixScaling(2.0f, 2.0f, 2.0f));
+
+
     static const D3D11_INPUT_ELEMENT_DESC InputDesc[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
@@ -234,153 +248,9 @@ HRESULT Renderer::InitScene() {
 
 
     skybox_.createGeometry(pDevice_);
-    /*UINT LatLines = 20, LongLines = 20;
-    UINT numSphereVertices = ((LatLines - 2) * LongLines) + 2;
-    numSphereTriangles_ = ((LatLines - 3) * (LongLines) * 2) + (LongLines * 2);
 
-    float phi = 0.0f;
-    float theta = 0.0f;
+    
 
-    std::vector<SkyboxVertex> vertices(numSphereVertices);
-
-    XMVECTOR currVertPos = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-
-    vertices[0].x = 0.0f;
-    vertices[0].y = 0.0f;
-    vertices[0].z = 1.0f;
-
-    for (UINT i = 0; i < LatLines - 2; i++) {
-        theta = (i + 1) * (XM_PI / (LatLines - 1));
-        XMMATRIX Rotationx = XMMatrixRotationX(theta);
-        for (UINT j = 0; j < LongLines; j++) {
-            phi = j * (XM_2PI / LongLines);
-            XMMATRIX Rotationy = XMMatrixRotationZ(phi);
-            currVertPos = XMVector3TransformNormal(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), (Rotationx * Rotationy));
-            currVertPos = XMVector3Normalize(currVertPos);
-            vertices[i * (__int64)LongLines + j + 1].x = XMVectorGetX(currVertPos);
-            vertices[i * (__int64)LongLines + j + 1].y = XMVectorGetY(currVertPos);
-            vertices[i * (__int64)LongLines + j + 1].z = XMVectorGetZ(currVertPos);
-        }
-    }
-
-    vertices[(__int64)numSphereVertices - 1].x = 0.0f;
-    vertices[(__int64)numSphereVertices - 1].y = 0.0f;
-    vertices[(__int64)numSphereVertices - 1].z = -1.0f;
-
-    std::vector<UINT> indices((__int64)numSphereTriangles_ * 3);
-
-    UINT k = 0;
-    for (UINT i = 0; i < LongLines - 1; i++) {
-        indices[k] = 0;
-        indices[(__int64)k + 2] = i + 1;
-        indices[(__int64)k + 1] = i + 2;
-        k += 3;
-    }
-    indices[k] = 0;
-    indices[(__int64)k + 2] = LongLines;
-    indices[(__int64)k + 1] = 1;
-    k += 3;
-
-    for (UINT i = 0; i < LatLines - 3; i++) {
-        for (UINT j = 0; j < LongLines - 1; j++) {
-            indices[k] = i * LongLines + j + 1;
-            indices[(__int64)k + 1] = i * LongLines + j + 2;
-            indices[(__int64)k + 2] = (i + 1) * LongLines + j + 1;
-
-            indices[(__int64)k + 3] = (i + 1) * LongLines + j + 1;
-            indices[(__int64)k + 4] = i * LongLines + j + 2;
-            indices[(__int64)k + 5] = (i + 1) * LongLines + j + 2;
-
-            k += 6;
-        }
-
-        indices[k] = (i * LongLines) + LongLines;
-        indices[(__int64)k + 1] = (i * LongLines) + 1;
-        indices[(__int64)k + 2] = ((i + 1) * LongLines) + LongLines;
-
-        indices[(__int64)k + 3] = ((i + 1) * LongLines) + LongLines;
-        indices[(__int64)k + 4] = (i * LongLines) + 1;
-        indices[(__int64)k + 5] = ((i + 1) * LongLines) + 1;
-
-        k += 6;
-    }
-
-    for (UINT i = 0; i < LongLines - 1; i++) {
-        indices[k] = numSphereVertices - 1;
-        indices[(__int64)k + 2] = (numSphereVertices - 1) - (i + 1);
-        indices[(__int64)k + 1] = (numSphereVertices - 1) - (i + 2);
-        k += 3;
-    }
-
-    indices[k] = numSphereVertices - 1;
-    indices[(__int64)k + 2] = (numSphereVertices - 1) - LongLines;
-    indices[(__int64)k + 1] = numSphereVertices - 2;
-
-    static const D3D11_INPUT_ELEMENT_DESC SkyboxInputDesc[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };*/
-
-    cube_.createShaders(pDevice_);
-    /*D3D11_BUFFER_DESC desc = {};
-    desc.ByteWidth = sizeof(Vertices);
-    desc.Usage = D3D11_USAGE_IMMUTABLE;
-    desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    desc.CPUAccessFlags = 0;
-    desc.MiscFlags = 0;
-    desc.StructureByteStride = 0;
-
-    D3D11_SUBRESOURCE_DATA data;
-    data.pSysMem = &Vertices;
-    data.SysMemPitch = sizeof(Vertices);
-    data.SysMemSlicePitch = 0;
-
-    result = pDevice_->CreateBuffer(&desc, &data, &pVertexBuffer_[0]);
-
-    if (SUCCEEDED(result)) {
-        D3D11_BUFFER_DESC desc = {};
-        desc.ByteWidth = sizeof(Indices);
-        desc.Usage = D3D11_USAGE_IMMUTABLE;
-        desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-        desc.CPUAccessFlags = 0;
-        desc.MiscFlags = 0;
-        desc.StructureByteStride = 0;
-
-        D3D11_SUBRESOURCE_DATA data;
-        data.pSysMem = &Indices;
-        data.SysMemPitch = sizeof(Indices);
-        data.SysMemSlicePitch = 0;
-
-        result = pDevice_->CreateBuffer(&desc, &data, &pIndexBuffer_[0]);
-    }*/
-
-    /*ID3D10Blob* vertexShaderBuffer = nullptr;
-    ID3D10Blob* pixelShaderBuffer = nullptr;
-    int flags = 0;
-#ifdef _DEBUG
-    flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-    if (SUCCEEDED(result)) {
-        result = D3DCompileFromFile(L"VertexShader.hlsl", NULL, NULL, "main", "vs_5_0", flags, 0, &vertexShaderBuffer, NULL);
-        if (SUCCEEDED(result)) {
-            result = pDevice_->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &pVertexShader_[0]);
-        }
-    }
-    if (SUCCEEDED(result)) {
-        result = D3DCompileFromFile(L"PixelShader.hlsl", NULL, NULL, "main", "ps_5_0", flags, 0, &pixelShaderBuffer, NULL);
-        if (SUCCEEDED(result)) {
-            result = pDevice_->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &pPixelShader_[0]);
-        }
-    }
-    if (SUCCEEDED(result)) {
-        int numElements = sizeof(InputDesc) / sizeof(InputDesc[0]);
-        result = pDevice_->CreateInputLayout(InputDesc, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &pInputLayout_[0]);
-    }
-
-    SafeRelease(vertexShaderBuffer);
-    SafeRelease(pixelShaderBuffer);*/
-
-    //if (SUCCEEDED(result)) {
     D3D11_BUFFER_DESC desc = {};
     desc.ByteWidth = sizeof(WorldMatrixBuffer);
     desc.Usage = D3D11_USAGE_DEFAULT;
@@ -397,123 +267,19 @@ HRESULT Renderer::InitScene() {
     data.SysMemPitch = sizeof(worldMatrixBuffer);
     data.SysMemSlicePitch = 0;
 
-    /*result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[0]);
-    if (SUCCEEDED(result)) {
-        worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(4.0f, 0.0f, 0.0f);
-        result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[1]);
-    }
-    if (SUCCEEDED(result)) {
-        worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(1.8f, 0.0f, 0.0f);
-        result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[3]);
-    }
-    if (SUCCEEDED(result)) {
-        worldMatrixBuffer.worldMatrix = DirectX::XMMatrixTranslation(2.2f, 0.0f, 0.0f);
-        result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[4]);
-    }*/
-    //}
-    //if (SUCCEEDED(result)) {
-        /*D3D11_BUFFER_DESC*/ desc = {};
-        desc.ByteWidth = sizeof(ViewMatrixBuffer);
-        desc.Usage = D3D11_USAGE_DYNAMIC;
-        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        desc.MiscFlags = 0;
-        desc.StructureByteStride = 0;
+    desc = {};
+    desc.ByteWidth = sizeof(ViewMatrixBuffer);
+    desc.Usage = D3D11_USAGE_DYNAMIC;
+    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    desc.MiscFlags = 0;
+    desc.StructureByteStride = 0;
 
-        result = pDevice_->CreateBuffer(&desc, nullptr, &pViewMatrixBuffer_[0]);
-    //}
-    /* {
-        if (SUCCEEDED(result)) {
-            D3D11_BUFFER_DESC desc = {};
-            desc.ByteWidth = sizeof(SkyboxVertex) * numSphereVertices;
-            desc.Usage = D3D11_USAGE_IMMUTABLE;
-            desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-            desc.CPUAccessFlags = 0;
-            desc.MiscFlags = 0;
-            desc.StructureByteStride = 0;
+    result = pDevice_->CreateBuffer(&desc, nullptr, &pViewMatrixBuffer_[0]);
 
-            D3D11_SUBRESOURCE_DATA data;
-            ZeroMemory(&data, sizeof(data));
-            data.pSysMem = &vertices[0];
-            result = pDevice_->CreateBuffer(&desc, &data, &pVertexBuffer_[1]);
-        }
-        if (SUCCEEDED(result)) {
-            D3D11_BUFFER_DESC desc = {};
-            ZeroMemory(&desc, sizeof(desc));
-            desc.ByteWidth = sizeof(UINT) * numSphereTriangles_ * 3;
-            desc.Usage = D3D11_USAGE_IMMUTABLE;
-            desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-            desc.CPUAccessFlags = 0;
-            desc.MiscFlags = 0;
-            desc.StructureByteStride = 0;
 
-            D3D11_SUBRESOURCE_DATA data;
-            data.pSysMem = &indices[0];
+    skybox_.createShaders(pDevice_);
 
-            result = pDevice_->CreateBuffer(&desc, &data, &pIndexBuffer_[1]);
-        }*/
-
-        /*ID3D10Blob* vertexShaderBuffer = nullptr;
-        ID3D10Blob* pixelShaderBuffer = nullptr;
-        int flags = 0;
-#ifdef _DEBUG
-        flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-        if (SUCCEEDED(result)) {
-            result = D3DCompileFromFile(L"CubeMapVS.hlsl", NULL, NULL, "main", "vs_5_0", flags, 0, &vertexShaderBuffer, NULL);
-            if (SUCCEEDED(result)) {
-                result = pDevice_->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &pVertexShader_[1]);
-            }
-        }
-        if (SUCCEEDED(result)) {
-            result = D3DCompileFromFile(L"CubeMapPS.hlsl", NULL, NULL, "main", "ps_5_0", flags, 0, &pixelShaderBuffer, NULL);
-            if (SUCCEEDED(result)) {
-                result = pDevice_->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &pPixelShader_[1]);
-            }
-        }
-        if (SUCCEEDED(result)) {
-            int numElements = sizeof(SkyboxInputDesc) / sizeof(SkyboxInputDesc[0]);
-            result = pDevice_->CreateInputLayout(SkyboxInputDesc, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &pInputLayout_[1]);
-        }
-
-        SafeRelease(vertexShaderBuffer);
-        SafeRelease(pixelShaderBuffer);*/
-
-        skybox_.createShaders(pDevice_);
-
-        /*if (SUCCEEDED(result)) {
-            D3D11_BUFFER_DESC desc = {};
-            desc.ByteWidth = sizeof(SkyboxWorldMatrixBuffer);
-            desc.Usage = D3D11_USAGE_DEFAULT;
-            desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-            desc.CPUAccessFlags = 0;
-            desc.MiscFlags = 0;
-            desc.StructureByteStride = 0;
-
-            SkyboxWorldMatrixBuffer skyboxWorldMatrixBuffer;
-
-            skyboxWorldMatrixBuffer.worldMatrix = XMMatrixIdentity();
-            skyboxWorldMatrixBuffer.size = XMFLOAT4(radius_, 0.0f, 0.0f, 0.0f);
-
-            D3D11_SUBRESOURCE_DATA data;
-            data.pSysMem = &skyboxWorldMatrixBuffer;
-            data.SysMemPitch = sizeof(skyboxWorldMatrixBuffer);
-            data.SysMemSlicePitch = 0;
-
-            result = pDevice_->CreateBuffer(&desc, &data, &pWorldMatrixBuffer_[2]);
-        }
-        if (SUCCEEDED(result)) {
-            D3D11_BUFFER_DESC desc = {};
-            desc.ByteWidth = sizeof(SkyboxViewMatrixBuffer);
-            desc.Usage = D3D11_USAGE_DYNAMIC;
-            desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-            desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-            desc.MiscFlags = 0;
-            desc.StructureByteStride = 0;
-
-            result = pDevice_->CreateBuffer(&desc, nullptr, &pViewMatrixBuffer_[1]);
-        }*/
-    //}
     {
         if (SUCCEEDED(result)) {
             D3D11_BUFFER_DESC desc = {};
@@ -590,19 +356,9 @@ HRESULT Renderer::InitScene() {
         result = pDevice_->CreateRasterizerState(&desc, &pRasterizerState_);
     }
 
-    cube_.setRasterizerState(pDevice_, D3D11_CULL_BACK);
-    cube_.createTextures(pDevice_);
-    /*if (SUCCEEDED(result)) {
-        result = CreateDDSTextureFromFile(pDevice_, pDeviceContext_, L"textures/metal.dds", nullptr, &pTexture_[0]);
-    }*/
-
     skybox_.setRasterizerState(pDevice_, D3D11_CULL_BACK);
     skybox_.createTextures(pDevice_);
-    /*if (SUCCEEDED(result)) {
-        result = CreateDDSTextureFromFileEx(pDevice_, pDeviceContext_, L"textures/texture.dds",
-            0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE,
-            DDS_LOADER_DEFAULT, nullptr, &pTexture_[1]);
-    }*/
+
     if (SUCCEEDED(result)) {
         D3D11_SAMPLER_DESC desc = {};
 
@@ -696,16 +452,11 @@ bool Renderer::UpdateScene() {
     }
     t = (timeCur - timeStart) / 1000.0f;
 
-    //WorldMatrixBuffer worldMatrixBuffer;
-    //worldMatrixBuffer.worldMatrix = XMMatrixRotationY(t);
-
-    //pDeviceContext_->UpdateSubresource(pWorldMatrixBuffer_[0], 0, nullptr, &worldMatrixBuffer, 0, 0);
-
     XMMATRIX mView = pCamera_->GetViewMatrix();
 
     XMMATRIX mProjection = XMMatrixPerspectiveFovLH(XM_PI / 3, width_ / (FLOAT)height_, 100.0f, 0.01f);
 
-    D3D11_MAPPED_SUBRESOURCE subresource, skyboxSubresource;
+    D3D11_MAPPED_SUBRESOURCE subresource;
     result = pDeviceContext_->Map(pViewMatrixBuffer_[0], 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
     if (SUCCEEDED(result)) {
         ViewMatrixBuffer& sceneBuffer = *reinterpret_cast<ViewMatrixBuffer*>(subresource.pData);
@@ -713,27 +464,13 @@ bool Renderer::UpdateScene() {
         pDeviceContext_->Unmap(pViewMatrixBuffer_[0], 0);
     }
 
-    cube_.rotate(XMMatrixRotationY(t));
-    cube_.update(pDeviceContext_);
-
-
-    //if (SUCCEEDED(result)) {
-    /*    SkyboxWorldMatrixBuffer skyboxWorldMatrixBuffer;
-
-        skyboxWorldMatrixBuffer.worldMatrix = XMMatrixIdentity();
-        skyboxWorldMatrixBuffer.size = XMFLOAT4(radius_, 0.0f, 0.0f, 0.0f);
-
-        pDeviceContext_->UpdateSubresource(pWorldMatrixBuffer_[2], 0, nullptr, &skyboxWorldMatrixBuffer, 0, 0);
-
-        result = pDeviceContext_->Map(pViewMatrixBuffer_[1], 0, D3D11_MAP_WRITE_DISCARD, 0, &skyboxSubresource);
-    //}
-    if (SUCCEEDED(result)) {
-        SkyboxViewMatrixBuffer& skyboxSceneBuffer = *reinterpret_cast<SkyboxViewMatrixBuffer*>(skyboxSubresource.pData);
-        skyboxSceneBuffer.viewProjectionMatrix = XMMatrixMultiply(mView, mProjection);
-        XMFLOAT3 cameraPos = pCamera_->GetPosition();
-        skyboxSceneBuffer.cameraPos = XMFLOAT4(cameraPos.x, cameraPos.y, cameraPos.z, 1.0f);
-        pDeviceContext_->Unmap(pViewMatrixBuffer_[1], 0);
-    }*/
+    shapes_[3]->translate(DirectX::XMMatrixTranslation(0.0f, sinf(t) * 12.0f, cosf(t) * 12.0f));
+    shapes_[0]->translate(DirectX::XMMatrixTranslation(sinf(t) * 4.0f + 4.0f, 0.0f, cosf(t) * 4.0f));
+    shapes_[2]->translate(DirectX::XMMatrixTranslation(sinf(t) * -4.0f + 4.0f, 0.0f, cosf(t) * -4.0f));
+    for (Shape* shape : shapes_) {
+        shape->rotate(XMMatrixRotationY(t));
+        shape->update(pDeviceContext_);
+    }
     
     result = skybox_.update(pDeviceContext_, pCamera_, mProjection);
 
@@ -775,68 +512,17 @@ bool Renderer::Render()
 
     ID3D11SamplerState* samplers[] = { pSampler_ };
     pDeviceContext_->PSSetSamplers(0, 1, samplers);
-
-    /*ID3D11ShaderResourceView* resources[] = {pTexture_[0]};
-    pDeviceContext_->PSSetShaderResources(0, 1, resources);
-
-    pDeviceContext_->IASetIndexBuffer(pIndexBuffer_[0], DXGI_FORMAT_R16_UINT, 0);
-    ID3D11Buffer* vertexBuffers[] = { pVertexBuffer_[0] };
-    UINT strides[] = { 20 };
-    UINT offsets[] = { 0 };
-    pDeviceContext_->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
-    pDeviceContext_->IASetInputLayout(pInputLayout_[0]);
-    pDeviceContext_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    pDeviceContext_->VSSetConstantBuffers(0, 1, &pWorldMatrixBuffer_[0]);
-    pDeviceContext_->VSSetConstantBuffers(1, 1, &pViewMatrixBuffer_[0]);
-    pDeviceContext_->VSSetShader(pVertexShader_[0], nullptr, 0);
-    pDeviceContext_->PSSetShader(pPixelShader_[0], nullptr, 0);
-    pDeviceContext_->DrawIndexed(36, 0, 0);*/
     XMMATRIX mView = pCamera_->GetViewMatrix();
     XMMATRIX mProjection = XMMatrixPerspectiveFovLH(XM_PI / 4, width_ / (FLOAT)height_, 0.01f, 100.0f);
 
-    cube_.draw(pViewMatrixBuffer_[0], pDeviceContext_);
+    for (Shape* shape : shapes_)
+        shape->draw(pViewMatrixBuffer_[0], pDeviceContext_);
 
 
     pDeviceContext_->OMSetDepthStencilState(pDepthState_[1], 0);
-    /* {
-        ID3D11ShaderResourceView* resources[] = { pTexture_[1] };
-        pDeviceContext_->PSSetShaderResources(0, 1, resources);
 
-        pDeviceContext_->IASetIndexBuffer(pIndexBuffer_[1], DXGI_FORMAT_R32_UINT, 0);
-        ID3D11Buffer* vertexBuffers[] = { pVertexBuffer_[1] };
-        UINT strides[] = { 12 };
-        UINT offsets[] = { 0 };
-        pDeviceContext_->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
-        pDeviceContext_->IASetInputLayout(pInputLayout_[1]);
-        pDeviceContext_->VSSetShader(pVertexShader_[1], nullptr, 0);
-        pDeviceContext_->VSSetConstantBuffers(0, 1, &pWorldMatrixBuffer_[2]);
-        pDeviceContext_->VSSetConstantBuffers(1, 1, &pViewMatrixBuffer_[1]);
-        pDeviceContext_->PSSetShader(pPixelShader_[1], nullptr, 0);
-
-        pDeviceContext_->DrawIndexed(numSphereTriangles_ * 3, 0, 0);
-    }*/
     skybox_.draw(pDeviceContext_);
     
-    /* {
-        pDeviceContext_->IASetIndexBuffer(pIndexBuffer_[2], DXGI_FORMAT_R16_UINT, 0);
-        ID3D11Buffer* vertexBuffers[] = { pVertexBuffer_[2] };
-        UINT strides[] = { 16 };
-        UINT offsets[] = { 0 };
-        pDeviceContext_->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
-        pDeviceContext_->IASetInputLayout(pInputLayout_[2]);
-
-        pDeviceContext_->VSSetShader(pVertexShader_[2], nullptr, 0);
-        pDeviceContext_->PSSetShader(pPixelShader_[2], nullptr, 0);
-        pDeviceContext_->VSSetConstantBuffers(1, 1, &pViewMatrixBuffer_[0]);
-
-        pDeviceContext_->OMSetBlendState(pBlendState_, nullptr, 0xFFFFFFFF);
-
-        pDeviceContext_->VSSetConstantBuffers(0, 1, &pWorldMatrixBuffer_[3]);
-        pDeviceContext_->DrawIndexed(6, 0, 0);
-
-        pDeviceContext_->VSSetConstantBuffers(0, 1, &pWorldMatrixBuffer_[4]);
-        pDeviceContext_->DrawIndexed(6, 0, 0);
-    }*/
     HRESULT result = pSwapChain_->Present(0, 0);
     
 

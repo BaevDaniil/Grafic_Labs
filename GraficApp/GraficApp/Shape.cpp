@@ -135,7 +135,6 @@ HRESULT Cube::createShaders(ID3D11Device* pDevice) {
 }
 
 HRESULT Cube::createTextures(ID3D11Device* pDevice) {
-    ID3D11SamplerState* m_pSampler;
     ID3D11ShaderResourceView* m_pTextureView;
 
     HRESULT result = DirectX::CreateDDSTextureFromFile(pDevice, L"textures/metal.dds", nullptr, &m_pTextureView);

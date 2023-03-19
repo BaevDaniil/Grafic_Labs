@@ -5,7 +5,6 @@
 #include "framework.h"
 #include "camera.h"
 #include "input.h"
-//#include "Scene.h"
 #include "Shape.h"
 #include "SkyBox.h"
 
@@ -61,8 +60,8 @@ public:
 private:
     Renderer();
 
-    //Scene* scene = nullptr;
-    Cube cube_;
+    //Cube cube_;
+    std::vector<Shape*> shapes_;
     SkyBox skybox_;
 
     HRESULT InitScene();
