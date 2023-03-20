@@ -3,8 +3,11 @@
 #include <windows.h>
 #include <vector>
 #include "framework.h"
+#include "D3DInclude.h"
 #include "camera.h"
 #include "input.h"
+#include "Shape.h"
+#include "SkyBox.h"
 
 struct Vertex {
     float x, y, z;
@@ -58,27 +61,22 @@ public:
 private:
     Renderer();
 
+    std::vector<Shape*> shapes_;
+    SkyBox skybox_;
+
     HRESULT InitScene();
     void InputHandler();
     bool UpdateScene();
 
-    ID3D11Device* pDevice_;
-    ID3D11DeviceContext* pDeviceContext_;
-    IDXGISwapChain* pSwapChain_;
-    ID3D11RenderTargetView* pRenderTargetView_;
+    ID3D11Device* pDevice_ = NULL;
+    ID3D11DeviceContext* pDeviceContext_ = NULL;
+    IDXGISwapChain* pSwapChain_ =  NULL;
+    ID3D11RenderTargetView* pRenderTargetView_ = NULL;
 
-    ID3D11Buffer* pVertexBuffer_[3] = { NULL, NULL, NULL };
-    ID3D11Buffer* pIndexBuffer_[3] = { NULL, NULL, NULL };
-    ID3D11InputLayout* pInputLayout_[3] = { NULL, NULL, NULL };
-    ID3D11VertexShader* pVertexShader_[3] = { NULL, NULL, NULL };
-    ID3D11PixelShader* pPixelShader_[3] = { NULL, NULL, NULL };
+    ID3D11Buffer* pViewMatrixBuffer_ = NULL;
+    ID3D11RasterizerState* pRasterizerState_ = NULL;
+    ID3D11SamplerState* pSampler_ = NULL;
 
-    ID3D11Buffer* pWorldMatrixBuffer_[5] = { NULL, NULL, NULL, NULL, NULL };
-    ID3D11Buffer* pViewMatrixBuffer_[2] = { NULL, NULL };
-    ID3D11RasterizerState* pRasterizerState_;
-    ID3D11SamplerState* pSampler_;
-
-    ID3D11ShaderResourceView* pTexture_[2] = { NULL, NULL };
     ID3D11Texture2D* pDepthBuffer_;
     ID3D11DepthStencilView* pDepthBufferDSV_;
     ID3D11DepthStencilState* pDepthState_[2] = { NULL, NULL };
