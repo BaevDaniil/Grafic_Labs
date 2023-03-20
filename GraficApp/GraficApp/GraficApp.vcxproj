@@ -143,20 +143,39 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="C:\Users\Daniil\Desktop\CompGraphLab_course4-develop\Lab6\D3DInclude.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="DDSTextureLoader11.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="imconfig.h" />
+    <ClInclude Include="imgui.h" />
+    <ClInclude Include="imgui_impl_dx11.h" />
+    <ClInclude Include="imgui_impl_win32.h" />
+    <ClInclude Include="imgui_internal.h" />
+    <ClInclude Include="imstb_rectpack.h" />
+    <ClInclude Include="imstb_textedit.h" />
+    <ClInclude Include="imstb_truetype.h" />
     <ClInclude Include="input.h" />
+    <ClInclude Include="LightCalc.hlsli" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="SceneMatrixBuffer.hlsi" />
     <ClInclude Include="Shape.h" />
     <ClInclude Include="SkyBox.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="main.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="C:\Users\Daniil\Desktop\CompGraphLab_course4-develop\Lab6\D3DInclude.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="DDSTextureLoader11.cpp" />
+    <ClCompile Include="imgui.cpp" />
+    <ClCompile Include="imgui_demo.cpp" />
+    <ClCompile Include="imgui_draw.cpp" />
+    <ClCompile Include="imgui_impl_dx11.cpp" />
+    <ClCompile Include="imgui_impl_win32.cpp" />
+    <ClCompile Include="imgui_tables.cpp" />
+    <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="main.cpp" />
@@ -209,6 +228,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="imgui.ini" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

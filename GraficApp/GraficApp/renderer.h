@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <vector>
 #include "framework.h"
+#include "D3DInclude.h"
 #include "camera.h"
 #include "input.h"
 #include "Shape.h"
@@ -60,7 +61,6 @@ public:
 private:
     Renderer();
 
-    //Cube cube_;
     std::vector<Shape*> shapes_;
     SkyBox skybox_;
 
@@ -73,18 +73,10 @@ private:
     IDXGISwapChain* pSwapChain_ =  NULL;
     ID3D11RenderTargetView* pRenderTargetView_ = NULL;
 
-    ID3D11Buffer* pVertexBuffer_[3] = { NULL, NULL, NULL };
-    ID3D11Buffer* pIndexBuffer_[3] = { NULL, NULL, NULL };
-    ID3D11InputLayout* pInputLayout_[3] = { NULL, NULL, NULL };
-    ID3D11VertexShader* pVertexShader_[3] = { NULL, NULL, NULL };
-    ID3D11PixelShader* pPixelShader_[3] = { NULL, NULL, NULL };
-
-    ID3D11Buffer* pWorldMatrixBuffer_[5] = { NULL, NULL, NULL, NULL, NULL };
-    ID3D11Buffer* pViewMatrixBuffer_[2] = { NULL, NULL };
+    ID3D11Buffer* pViewMatrixBuffer_ = NULL;
     ID3D11RasterizerState* pRasterizerState_ = NULL;
     ID3D11SamplerState* pSampler_ = NULL;
 
-    ID3D11ShaderResourceView* pTexture_[2] = { NULL, NULL };
     ID3D11Texture2D* pDepthBuffer_;
     ID3D11DepthStencilView* pDepthBufferDSV_;
     ID3D11DepthStencilState* pDepthState_[2] = { NULL, NULL };

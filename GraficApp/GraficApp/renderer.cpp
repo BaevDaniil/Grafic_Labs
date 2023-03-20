@@ -43,7 +43,7 @@ void Renderer::CleanAll()
     SafeRelease(pDepthBufferDSV_);
     SafeRelease(pBlendState_);
 
-    SafeRelease(pVertexBuffer_[0]);
+    /*SafeRelease(pVertexBuffer_[0]);
     SafeRelease(pVertexBuffer_[1]);
     SafeRelease(pVertexBuffer_[2]);
 
@@ -73,7 +73,7 @@ void Renderer::CleanAll()
     SafeRelease(pWorldMatrixBuffer_[4]);
 
     SafeRelease(pTexture_[0]);
-    SafeRelease(pTexture_[1]);
+    SafeRelease(pTexture_[1]);*/
 
     SafeRelease(pDepthState_[0]);
     SafeRelease(pDepthState_[1]);
@@ -210,155 +210,83 @@ bool Renderer::Init(HINSTANCE hInstance, const HWND hWnd)
 }
 
 HRESULT Renderer::InitScene() {
-    HRESULT result;
+    HRESULT result = S_OK;
 
     for (int i = 0; i <= 3; ++i) {
         Cube* cube = new Cube;
-        cube->createGeometry(pDevice_);
-        cube->createShaders(pDevice_);
-        cube->setRasterizerState(pDevice_, D3D11_CULL_BACK);
-        cube->createTextures(pDevice_);
-        shapes_.push_back(cube);
+
+        if (SUCCEEDED(result))
+            result = cube->createGeometry(pDevice_);
+        if (SUCCEEDED(result))
+            result = cube->createShaders(pDevice_);
+        if (SUCCEEDED(result))
+            result = cube->setRasterizerState(pDevice_, D3D11_CULL_BACK);
+        if (SUCCEEDED(result))
+            cube->createTextures(pDevice_);
+        if (SUCCEEDED(result))
+            shapes_.push_back(cube);
     }
-    shapes_[0]->translate(DirectX::XMMatrixTranslation(4.0f, 0.0f, -5.0f));
+    //shapes_[0]->translate(DirectX::XMMatrixTranslation(4.0f, 0.0f, -5.0f));
     shapes_[1]->translate(DirectX::XMMatrixTranslation(4.0f, 0.0f, 0.0f));
-    shapes_[2]->translate(DirectX::XMMatrixTranslation(4.0f, 0.0f, 5.0f));
-    shapes_[3]->translate(DirectX::XMMatrixTranslation(10.0f, 0.0f, 0.0f));
+    //shapes_[2]->translate(DirectX::XMMatrixTranslation(4.0f, 0.0f, 5.0f));
+    //shapes_[3]->translate(DirectX::XMMatrixTranslation(10.0f, 0.0f, 0.0f));
     shapes_[3]->scale(DirectX::XMMatrixScaling(2.0f, 2.0f, 2.0f));
 
+    for (int i = 0; i < 2; ++i) {
+        Rect* rect = new Rect;
 
-    static const D3D11_INPUT_ELEMENT_DESC InputDesc[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
-    };
-
-    static const TransparentVertex VerticesT[] = {
-        {0, -1, -1, RGB(0, 255, 255)},
-        {0,  1, -1, RGB(255, 255, 0)},
-        {0,  1,  1, RGB(0, 255, 255)},
-        {0, -1,  1, RGB(255, 255, 0)}
-    };
-    static const USHORT IndicesT[] = {
-        0, 2, 1, 0, 3, 2
-    };
-    static const D3D11_INPUT_ELEMENT_DESC InputDescT[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR", 0,  DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
-    };
-
-
-    skybox_.createGeometry(pDevice_);
-
-    
-
-    D3D11_BUFFER_DESC desc = {};
-    desc.ByteWidth = sizeof(WorldMatrixBuffer);
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    desc.CPUAccessFlags = 0;
-    desc.MiscFlags = 0;
-    desc.StructureByteStride = 0;
-
-    WorldMatrixBuffer worldMatrixBuffer;
-    worldMatrixBuffer.worldMatrix = DirectX::XMMatrixIdentity();
-
-    D3D11_SUBRESOURCE_DATA data;
-    data.pSysMem = &worldMatrixBuffer;
-    data.SysMemPitch = sizeof(worldMatrixBuffer);
-    data.SysMemSlicePitch = 0;
-
-    desc = {};
-    desc.ByteWidth = sizeof(ViewMatrixBuffer);
-    desc.Usage = D3D11_USAGE_DYNAMIC;
-    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    desc.MiscFlags = 0;
-    desc.StructureByteStride = 0;
-
-    result = pDevice_->CreateBuffer(&desc, nullptr, &pViewMatrixBuffer_[0]);
-
-
-    skybox_.createShaders(pDevice_);
-
-    {
-        if (SUCCEEDED(result)) {
-            D3D11_BUFFER_DESC desc = {};
-            desc.ByteWidth = sizeof(VerticesT);
-            desc.Usage = D3D11_USAGE_IMMUTABLE;
-            desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-            desc.CPUAccessFlags = 0;
-            desc.MiscFlags = 0;
-            desc.StructureByteStride = 0;
-
-            D3D11_SUBRESOURCE_DATA data;
-            data.pSysMem = &VerticesT;
-            data.SysMemPitch = sizeof(VerticesT);
-            data.SysMemSlicePitch = 0;
-
-            result = pDevice_->CreateBuffer(&desc, &data, &pVertexBuffer_[2]);
-        }
-        if (SUCCEEDED(result)) {
-            D3D11_BUFFER_DESC desc = {};
-            desc.ByteWidth = sizeof(IndicesT);
-            desc.Usage = D3D11_USAGE_IMMUTABLE;
-            desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-            desc.CPUAccessFlags = 0;
-            desc.MiscFlags = 0;
-            desc.StructureByteStride = 0;
-
-            D3D11_SUBRESOURCE_DATA data;
-            data.pSysMem = &IndicesT;
-            data.SysMemPitch = sizeof(IndicesT);
-            data.SysMemSlicePitch = 0;
-
-            result = pDevice_->CreateBuffer(&desc, &data, &pIndexBuffer_[2]);
-        }
-
-        ID3D10Blob* vertexShaderBuffer = nullptr;
-        ID3D10Blob* pixelShaderBuffer = nullptr;
-        int flags = 0;
-#ifdef _DEBUG
-        flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-        if (SUCCEEDED(result)) {
-            result = D3DCompileFromFile(L"TVS.hlsl", NULL, NULL, "main", "vs_5_0", flags, 0, &vertexShaderBuffer, NULL);
-            if (SUCCEEDED(result)) {
-                result = pDevice_->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &pVertexShader_[2]);
-            }
-        }
-        if (SUCCEEDED(result)) {
-            result = D3DCompileFromFile(L"TPS.hlsl", NULL, NULL, "main", "ps_5_0", flags, 0, &pixelShaderBuffer, NULL);
-            if (SUCCEEDED(result)) {
-                result = pDevice_->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &pPixelShader_[2]);
-            }
-        }
-        if (SUCCEEDED(result)) {
-            int numElements = sizeof(InputDescT) / sizeof(InputDescT[0]);
-            result = pDevice_->CreateInputLayout(InputDescT, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &pInputLayout_[2]);
-        }
-
-        SafeRelease(vertexShaderBuffer);
-        SafeRelease(pixelShaderBuffer);
+        if (SUCCEEDED(result))
+            result = rect->createGeometry(pDevice_);
+        if (SUCCEEDED(result))
+            result = rect->createShaders(pDevice_);
+        if (SUCCEEDED(result))
+            result = rect->setRasterizerState(pDevice_, D3D11_CULL_NONE);
+        if (SUCCEEDED(result))
+            shapes_.push_back(rect);
     }
+    shapes_[4]->translate(DirectX::XMMatrixTranslation(10.0f, 0.0f, 0.0f));
+    shapes_[5]->translate(DirectX::XMMatrixTranslation(6.0f, 0.0f, 0.0f));
+    shapes_[4]->scale(DirectX::XMMatrixScaling(0.0f, 3.0f, 2.0f));
+    shapes_[5]->scale(DirectX::XMMatrixScaling(0.0f, 3.0f, 2.0f));
+
+    if (SUCCEEDED(result))
+        skybox_.createGeometry(pDevice_);
+    if (SUCCEEDED(result))
+        skybox_.createShaders(pDevice_);
+    if (SUCCEEDED(result))
+        skybox_.setRasterizerState(pDevice_, D3D11_CULL_BACK);
+    if (SUCCEEDED(result))
+        skybox_.createTextures(pDevice_);
+
+
+
     if (SUCCEEDED(result)) {
-        D3D11_RASTERIZER_DESC desc = {};
-        desc.AntialiasedLineEnable = false;
-        desc.FillMode = D3D11_FILL_SOLID;
-        desc.CullMode = D3D11_CULL_NONE;
-        desc.DepthBias = 0;
-        desc.DepthBiasClamp = 0.0f;
-        desc.FrontCounterClockwise = false;
-        desc.DepthClipEnable = true;
-        desc.ScissorEnable = false;
-        desc.MultisampleEnable = false;
-        desc.SlopeScaledDepthBias = 0.0f;
+        D3D11_BUFFER_DESC desc = {};
+        desc.ByteWidth = sizeof(WorldMatrixBuffer);
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        desc.CPUAccessFlags = 0;
+        desc.MiscFlags = 0;
+        desc.StructureByteStride = 0;
 
-        result = pDevice_->CreateRasterizerState(&desc, &pRasterizerState_);
+        WorldMatrixBuffer worldMatrixBuffer;
+        worldMatrixBuffer.worldMatrix = DirectX::XMMatrixIdentity();
+
+        D3D11_SUBRESOURCE_DATA data;
+        data.pSysMem = &worldMatrixBuffer;
+        data.SysMemPitch = sizeof(worldMatrixBuffer);
+        data.SysMemSlicePitch = 0;
+
+        desc = {};
+        desc.ByteWidth = sizeof(ViewMatrixBuffer);
+        desc.Usage = D3D11_USAGE_DYNAMIC;
+        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        desc.MiscFlags = 0;
+        desc.StructureByteStride = 0;
+
+        result = pDevice_->CreateBuffer(&desc, nullptr, &pViewMatrixBuffer_);
     }
-
-    skybox_.setRasterizerState(pDevice_, D3D11_CULL_BACK);
-    skybox_.createTextures(pDevice_);
-
     if (SUCCEEDED(result)) {
         D3D11_SAMPLER_DESC desc = {};
 
@@ -410,6 +338,7 @@ HRESULT Renderer::InitScene() {
         result = pDevice_->CreateBlendState(&desc, &pBlendState_);
     }
 
+    dynamic_cast<Rect*>(shapes_[4])->SetColor(RGB(0, 0, 255), pDeviceContext_);
     return result;
 }
 
@@ -457,18 +386,21 @@ bool Renderer::UpdateScene() {
     XMMATRIX mProjection = XMMatrixPerspectiveFovLH(XM_PI / 3, width_ / (FLOAT)height_, 100.0f, 0.01f);
 
     D3D11_MAPPED_SUBRESOURCE subresource;
-    result = pDeviceContext_->Map(pViewMatrixBuffer_[0], 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
+    result = pDeviceContext_->Map(pViewMatrixBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
     if (SUCCEEDED(result)) {
         ViewMatrixBuffer& sceneBuffer = *reinterpret_cast<ViewMatrixBuffer*>(subresource.pData);
         sceneBuffer.viewProjectionMatrix = XMMatrixMultiply(mView, mProjection);
-        pDeviceContext_->Unmap(pViewMatrixBuffer_[0], 0);
+        pDeviceContext_->Unmap(pViewMatrixBuffer_, 0);
     }
 
     shapes_[3]->translate(DirectX::XMMatrixTranslation(0.0f, sinf(t) * 12.0f, cosf(t) * 12.0f));
     shapes_[0]->translate(DirectX::XMMatrixTranslation(sinf(t) * 4.0f + 4.0f, 0.0f, cosf(t) * 4.0f));
     shapes_[2]->translate(DirectX::XMMatrixTranslation(sinf(t) * -4.0f + 4.0f, 0.0f, cosf(t) * -4.0f));
+
+    for (int i = 0; i < 3; ++i) {
+        shapes_[i]->rotate(XMMatrixRotationY(t));
+    }
     for (Shape* shape : shapes_) {
-        shape->rotate(XMMatrixRotationY(t));
         shape->update(pDeviceContext_);
     }
     
@@ -490,6 +422,8 @@ bool Renderer::Render()
     static const FLOAT backColor[4] = { 0.4f, 0.2f, 0.4f, 1.0f };
     pDeviceContext_->ClearRenderTargetView(pRenderTargetView_, backColor);
     pDeviceContext_->ClearDepthStencilView(pDepthBufferDSV_, D3D11_CLEAR_DEPTH, 0.0f, 0);
+
+    pDeviceContext_->OMSetBlendState(pBlendState_, nullptr, 0xFFFFFFFF);
 
     D3D11_VIEWPORT viewport;
     viewport.TopLeftX = 0;
@@ -516,7 +450,7 @@ bool Renderer::Render()
     XMMATRIX mProjection = XMMatrixPerspectiveFovLH(XM_PI / 4, width_ / (FLOAT)height_, 0.01f, 100.0f);
 
     for (Shape* shape : shapes_)
-        shape->draw(pViewMatrixBuffer_[0], pDeviceContext_);
+        shape->draw(pViewMatrixBuffer_, pDeviceContext_);
 
 
     pDeviceContext_->OMSetDepthStencilState(pDepthState_[1], 0);
@@ -585,6 +519,4 @@ bool Renderer::Resize(const unsigned width, const unsigned height)
     skybox_.setRadius(radius_);
 
     return true;
-
-
 }

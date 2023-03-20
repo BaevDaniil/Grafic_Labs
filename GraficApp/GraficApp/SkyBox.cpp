@@ -189,7 +189,7 @@ HRESULT SkyBox::createTextures(ID3D11Device* m_pDevice) {
             DDS_LOADER_DEFAULT, nullptr, &m_pTextureView);
 
     if (SUCCEEDED(result)) {
-        resources.push_back(m_pTextureView);
+        resources_.push_back(m_pTextureView);
     }
 
     return result;
@@ -234,7 +234,7 @@ HRESULT SkyBox::update(ID3D11DeviceContext* m_pDeviceContext, Camera* pCamera, X
 
 void SkyBox::draw(ID3D11DeviceContext* m_pDeviceContext) {
     m_pDeviceContext->RSSetState(pRasterizerState_);
-    m_pDeviceContext->PSSetShaderResources(0, 1, resources.data());
+    m_pDeviceContext->PSSetShaderResources(0, 1, resources_.data());
 
     m_pDeviceContext->IASetIndexBuffer(pIndexBuffer_, DXGI_FORMAT_R32_UINT, 0);
     ID3D11Buffer* vertexBuffers[] = { pVertexBuffer_ };
